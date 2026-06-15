@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 // ============================================================
 // DESIGN TOKENS
@@ -122,7 +122,11 @@ const EVENTOS = [
   { id: "e15", tipo: "oportunidad", titulo: "Propiedad en venta", descripcion: "Una propiedad barata está disponible. Podrías rentarla y generar flujo.", opciones: ["Comprar y rentar", "Pasar", "Negociar precio"], impacto: [{ dinero: -30000, activosMes: 3500, energia: -10 }, { dinero: 0, energia: 0 }, { dinero: -25000, activosMes: 3500, energia: -15 }], emoji: "🏠", requiereHabilidad: "bienes_raices" },
   { id: "e16", tipo: "chamba", titulo: "Plomería de emergencia", descripcion: "Un vecino tiene una fuga de agua. Necesita ayuda urgente.", opciones: ["Ir ahora $500", "No puedes", "Cobrar urgencia $900"], impacto: [{ dinero: 500, energia: -15 }, { dinero: 0, energia: 0 }, { dinero: 900, energia: -20 }], emoji: "🚿", requiereHabilidad: "plomeria" },
   { id: "e17", tipo: "descanso", titulo: "Fin de semana libre", descripcion: "No hay urgencias. Puedes descansar o aprovechar para estudiar.", opciones: ["Descansar (recuperar energía)", "Estudiar una habilidad", "Buscar chamba extra"], impacto: [{ dinero: 0, energia: 40 }, { dinero: 0, energia: -10 }, { dinero: 1000, energia: -20 }], emoji: "🌴", requiereHabilidad: null },
-  { id: "e18", tipo: "chamba", titulo: "Página web para negocio", descripcion: "Una empresa necesita una landing page sencilla.", opciones: ["Cobrar $6,000", "Rechazar", "Cobrar $10,000 con mantenimiento"], impacto: [{ dinero: 6000, energia: -30 }, { dinero: 0, energia: 0 }, { dinero: 0, ingreso: 2000, energia: -35 }], emoji: "🌐", requiereHabilidad: "programacion" }, ];
+  { id: "e18", tipo: "chamba", titulo: "Página web para negocio", descripcion: "Una empresa necesita una landing page sencilla.", opciones: ["Cobrar $6,000", "Rechazar", "Cobrar $10,000 con mantenimiento"], impacto: [{ dinero: 6000, energia: -30 }, { dinero: 0, energia: 0 }, { dinero: 0, ingreso: 2000, energia: -35 }], emoji: "🌐", requiereHabilidad: "programacion" },
+  { id: "e19", tipo: "black_swan", titulo: "Tarjeta de crédito fácil", descripcion: "Te ofrecen una tarjeta con línea inmediata. Dinero ahora... que pagarás con intereses después.", opciones: ["Aceptar $3,000 (deuda)", "Rechazar (no, gracias)", "Sacar efectivo $2,000 (deuda)"], impacto: [{ dinero: 3000, deuda: 5000, energia: -5 }, { dinero: 0, energia: 5 }, { dinero: 2000, deuda: 3000, energia: -5 }], emoji: "💳", requiereHabilidad: null },
+  { id: "e20", tipo: "chamba", titulo: "Repartir paquetes", descripcion: "Hay temporada alta y necesitan repartidores este fin de semana.", opciones: ["Trabajar $700", "Descansar", "Doble turno $1,300"], impacto: [{ dinero: 700, energia: -20 }, { dinero: 0, energia: 20 }, { dinero: 1300, energia: -35 }], emoji: "📦", requiereHabilidad: null },
+  { id: "e21", tipo: "inversion", titulo: "Tanda con amigos", descripcion: "Tus amigos organizan una tanda. Disciplina de ahorro en grupo.", opciones: ["Entrar $1,500", "Pasar", "Entrar doble $3,000"], impacto: [{ dinero: -1500, activosMes: 90, energia: -3 }, { dinero: 0, energia: 0 }, { dinero: -3000, activosMes: 190, energia: -3 }], emoji: "🤲", requiereHabilidad: "ahorro" },
+  { id: "e22", tipo: "oportunidad", titulo: "Vender por internet", descripcion: "Puedes montar una tiendita en línea con lo que ya sabes de redes.", opciones: ["Montar tienda $2,000", "Pasar", "Invertir en inventario $4,000"], impacto: [{ dinero: -2000, ingreso: 1500, energia: -20 }, { dinero: 0, energia: 0 }, { dinero: -4000, ingreso: 3200, energia: -30 }], emoji: "🛒", requiereHabilidad: "redes_sociales" }, ];
 
 // ============================================================
 // OBJECTION / NEGOTIATION SYSTEM
@@ -446,11 +450,132 @@ const MENTOR_TIPS = {
   invertir: "📈 Los activos trabajan por ti mientras duermes. Sigue acumulando ingresos pasivos.",
   sinHabilidad: "🔒 No tienes la habilidad para esta oportunidad. Invierte en aprender — se paga solo.", };
 
+// Consejos extra del mentor: varios por situación, se elige uno al azar.
+const MENTOR_CONSEJOS = {
+  bancoCaro: [
+    "🏦 Tienes deuda en un banco de tasa alta (8%/mes). Eso crece más rápido de lo que puedes pagar el mínimo. Liquídala o abónale fuerte cuanto antes.",
+    "🔥 Un préstamo al 8% mensual es una trampa: el interés solo supera tu pago mínimo. Pásalo a un banco más barato o págalo ya.",
+  ],
+  deudaCrece: [
+    "📈 Tu deuda está creciendo: el interés mensual supera lo que abonas. Cada mes que pasa debes más. Ataca el principal.",
+    "⚠️ Pagar solo el mínimo a una deuda cara es como achicar agua con un colador. Abona más para reducir el principal.",
+  ],
+  deudaAlta: [
+    "💡 Tu deuda es alta. Antes de invertir, considera liquidar las deudas caras: ningún activo te rinde tanto como te cuesta un 8% mensual.",
+    "🎯 Regla de oro: paga primero la deuda con la tasa más alta (método avalancha). Ahorra más intereses.",
+  ],
+  cercaLibertad: [
+    "🔥 ¡Estás muy cerca! Tu ingreso pasivo casi cubre tus gastos. Una inversión más y sales del rat race.",
+    "🏁 La meta está a la vista. No gastes en doodads ahora — cada peso a activos te cruza la línea.",
+  ],
+  buenFlujo: [
+    "✅ Tienes flujo positivo. Ese excedente NO es para gastarlo: conviértelo en activos o en pagar deuda.",
+    "💪 Vas bien. El secreto no es ganar más, sino qué haces con lo que te sobra cada mes.",
+  ],
+  pocoActivo: [
+    "🌱 Aún no tienes ingreso pasivo. Empieza pequeño: CETES, un fondo, una renta. Lo importante es comenzar.",
+    "📚 Un empleo te da seguridad; los activos te dan libertad. Destina algo cada mes a comprar activos.",
+  ],
+  general: [
+    "🧠 Riqueza no es cuánto ganas, sino cuánto conservas y haces crecer.",
+    "⏳ La paciencia es tu mejor aliada: el interés compuesto premia a quien empieza temprano y no se detiene.",
+    "🎓 Aprende una habilidad nueva: sube tus probabilidades de éxito y abre mejores oportunidades.",
+    "💧 Cuida los pequeños gastos: una pequeña fuga hunde un gran barco.",
+  ],
+};
+
+// ============================================================
+// BANCOS FICTICIOS Y SISTEMA DE DEUDA
+// ============================================================
+const BANCOS = {
+  popular:  { id: "popular",  nombre: "Banco Popular",       tasa: 0.03, emoji: "🏛️", color: "#00E5A0", desc: "Tasa baja (3%/mes). El más justo." },
+  credimax: { id: "credimax", nombre: "CrediMax",            tasa: 0.06, emoji: "🏦", color: "#FFD166", desc: "Tasa media (6%/mes)." },
+  rapidito: { id: "rapidito", nombre: "Préstamos Rapidito",  tasa: 0.08, emoji: "💸", color: "#FF4D6A", desc: "¡Tasa alta (8%/mes)! Préstamo exprés, pero caro." },
+};
+const getBanco = (id) => BANCOS[id] || BANCOS.credimax;
+const totalDeuda = (fin) => (fin.deudas || []).reduce((s, d) => s + d.monto, 0);
+const interesMensual = (fin) => (fin.deudas || []).reduce((s, d) => s + d.monto * getBanco(d.bancoId).tasa, 0);
+
+// Agrega una deuda nueva (de un banco). Si ya hay deuda del mismo banco, la suma.
+const agregarDeuda = (deudas, monto, bancoId) => {
+  const lista = deudas.map(d => ({ ...d }));
+  const existente = lista.find(d => d.bancoId === bancoId);
+  if (existente) existente.monto += monto;
+  else lista.push({ id: `${bancoId}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`, bancoId, monto });
+  return lista;
+};
+// Paga `monto` repartido sobre las deudas, empezando por la tasa más alta (método avalancha).
+const pagarDeudaGlobal = (deudas, monto) => {
+  let restante = monto;
+  const orden = deudas.map(d => ({ ...d })).sort((a, b) => getBanco(b.bancoId).tasa - getBanco(a.bancoId).tasa);
+  for (const d of orden) {
+    if (restante <= 0) break;
+    const pago = Math.min(d.monto, restante);
+    d.monto -= pago;
+    restante -= pago;
+  }
+  return orden.filter(d => d.monto > 1);
+};
+
+// ============================================================
+// SONIDO (Web Audio API, sin archivos) — beeps generados
+// ============================================================
+let _audioCtx = null;
+let _soundOn = true;
+const setSoundOn = (v) => { _soundOn = v; };
+const playSound = (tipo) => {
+  if (!_soundOn || typeof window === "undefined") return;
+  try {
+    _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = _audioCtx;
+    const notas = {
+      click:   [[660, 0.05]],
+      success: [[523, 0.08], [784, 0.12]],
+      coin:    [[880, 0.05], [1175, 0.08]],
+      error:   [[200, 0.18]],
+      pay:     [[440, 0.06], [660, 0.06]],
+      win:     [[523, 0.12], [659, 0.12], [784, 0.12], [1047, 0.22]],
+    }[tipo] || [[440, 0.06]];
+    let t = ctx.currentTime;
+    notas.forEach(([freq, dur]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.18, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dur);
+      t += dur;
+    });
+  } catch (e) { /* audio no disponible */ }
+};
+
+// Animaciones CSS (se inyectan una sola vez)
+const ANIMACIONES_CSS = `
+@keyframes rr-slidein { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes rr-pop { 0% { transform: scale(0.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes rr-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,77,106,0.5); } 50% { box-shadow: 0 0 0 6px rgba(255,77,106,0); } }
+@keyframes rr-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+`;
+
+// Clave para guardar la partida en el navegador (localStorage)
+const SAVE_KEY = "ratrace_save_v1";
+
 // ============================================================
 // HELPERS
 // ============================================================
 const fmt = (n) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n);
 const getCicloLabel = (c) => ({ diario: "Día", semanal: "Semana", quincenal: "Quincena", mensual: "Mes" }[c]);
+
+// Estilo reutilizable para los botones de la pestaña de deudas
+const btnDeuda = (enabled, bg, color) => ({
+  flex: "1 1 auto", minWidth: 92, background: enabled ? bg : C.surface, color: enabled ? color : C.textMuted,
+  border: `1px solid ${C.border}`, borderRadius: 10, padding: "9px 6px", fontSize: 11, fontWeight: 700,
+  cursor: enabled ? "pointer" : "not-allowed", opacity: enabled ? 1 : 0.5,
+});
 
 const getAllSkills = () => Object.values(SKILL_TREE).flatMap(rama => rama.skills);
 const getSkillById = (id) => getAllSkills().find(s => s.id === id);
@@ -775,6 +900,14 @@ export default function RatRaceGame() {
   const [notification, setNotification] = useState(null);
   const [outcome, setOutcome] = useState(null);
   const [seguimientos, setSeguimientos] = useState([]);
+  const [muted, setMuted] = useState(() => { try { return localStorage.getItem("ratrace_muted") === "1"; } catch { return false; } });
+  const [haySaved, setHaySaved] = useState(() => { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } });
+  const [prestamoBanco, setPrestamoBanco] = useState("credimax");
+
+  // Mantener el flag de sonido sincronizado con el estado de "muted"
+  useEffect(() => { setSoundOn(!muted); try { localStorage.setItem("ratrace_muted", muted ? "1" : "0"); } catch {} }, [muted]);
+
+  const sfx = (t) => { if (!muted) playSound(t); };
 
   const addLog = (msg, tipo = "info") => setLog(prev => [{ msg, tipo, ciclo }, ...prev].slice(0, 25));
 
@@ -784,36 +917,92 @@ export default function RatRaceGame() {
   };
 
   const checkWin = useCallback((fin) => {
-    if (fin.activosPasivos >= fin.gastosMensuales) setScreen("win");
+    if (fin.activosPasivos >= fin.gastosMensuales) {
+      playSound("win");
+      try { localStorage.removeItem(SAVE_KEY); } catch {}
+      setScreen("win");
+    }
   }, []);
 
   const checkMentor = useCallback((fin, eng) => {
+    const al = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const total = totalDeuda(fin);
+    const tieneRapidito = (fin.deudas || []).some(d => d.bancoId === "rapidito");
     if (eng.actual < 25) { setMentorTip(MENTOR_TIPS.energiaBaja); return; }
-    if (fin.deudas > fin.ingresoMensual * 2) { setMentorTip(MENTOR_TIPS.deudaAlta); return; }
+    if (tieneRapidito) { setMentorTip(al(MENTOR_CONSEJOS.bancoCaro)); return; }
+    if (total > 0 && interesMensual(fin) > total * 0.05) { setMentorTip(al(MENTOR_CONSEJOS.deudaCrece)); return; }
+    if (total > fin.ingresoMensual * 2 && total > 0) { setMentorTip(MENTOR_TIPS.deudaAlta); return; }
+    if (fin.activosPasivos >= fin.gastosMensuales * 0.7 && fin.activosPasivos < fin.gastosMensuales) { setMentorTip(al(MENTOR_CONSEJOS.cercaLibertad)); return; }
     if (fin.gastosMensuales > fin.ingresoMensual + fin.activosPasivos && fin.ingresoMensual > 0) { setMentorTip(MENTOR_TIPS.gastosMayores); return; }
     if (fin.dinero < fin.gastosMensuales * 0.5) { setMentorTip(MENTOR_TIPS.sinAhorros); return; }
+    if (fin.activosPasivos === 0) { setMentorTip(al(MENTOR_CONSEJOS.pocoActivo)); return; }
+    if (Math.random() < 0.35) setMentorTip(al(MENTOR_CONSEJOS.general));
   }, []);
+
+  // Convierte la deuda inicial (un número) en deudas por banco según el perfil.
+  const deudaInicial = (p) => {
+    if (!p.finances.deudas) return [];
+    // Asignamos la deuda de arranque a un banco coherente con cada perfil.
+    const bancoPorPerfil = { freelancer: "rapidito", empleado: "credimax", profesional: "popular" };
+    const bancoId = bancoPorPerfil[p.id] || "credimax";
+    return [{ id: `${bancoId}_init`, bancoId, monto: p.finances.deudas }];
+  };
 
   const startGame = (p) => {
     setProfile(p); setStats({ ...p.stats });
     setHabilidades([...p.habilidades]);
-    setFinances({ ...p.finances });
+    setFinances({ ...p.finances, deudas: deudaInicial(p) });
     setEnergia({ ...p.energia });
     setCiclo(0); setLog([]); setSeguimientos([]); setOutcome(null); setScreen("game");
+    sfx("click");
   };
+
+  // Guardado automático de la partida cada vez que cambia algo relevante.
+  useEffect(() => {
+    if (screen !== "game" || !finances || !profile) return;
+    try {
+      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      setHaySaved(true);
+    } catch {}
+  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos]);
+
+  // Cargar la partida guardada y continuar.
+  const continuarPartida = () => {
+    try {
+      const data = JSON.parse(localStorage.getItem(SAVE_KEY));
+      if (!data) return;
+      setProfile(data.profile); setStats(data.stats); setHabilidades(data.habilidades);
+      // Compatibilidad: si una partida vieja guardó deudas como número, la convertimos.
+      const fin = { ...data.finances };
+      if (!Array.isArray(fin.deudas)) fin.deudas = fin.deudas ? [{ id: "credimax_init", bancoId: "credimax", monto: fin.deudas }] : [];
+      setFinances(fin);
+      setEnergia(data.energia); setCiclo(data.ciclo); setLog(data.log || []); setSeguimientos(data.seguimientos || []);
+      setScreen("game"); sfx("click");
+    } catch {}
+  };
+
+  const borrarPartida = () => { try { localStorage.removeItem(SAVE_KEY); } catch {} setHaySaved(false); };
 
   const avanzarCiclo = () => {
     if (energia.actual <= 0) { showNotif("Sin energía — debes descansar", C.red); return; }
+    sfx("click");
 
     setFinances(prev => {
       const nuevo = { ...prev };
       const factor = profile.ciclo === "diario" ? 1/30 : profile.ciclo === "semanal" ? 1/4 : profile.ciclo === "quincenal" ? 1/2 : 1;
       nuevo.dinero += (nuevo.ingresoMensual + nuevo.activosPasivos - nuevo.gastosMensuales) * factor;
-      if (nuevo.deudas > 0) {
-        const pago = Math.min(nuevo.deudas * 0.04, nuevo.deudas);
-        nuevo.deudas = Math.max(0, nuevo.deudas - pago);
-        nuevo.dinero -= pago * factor;
-      }
+      // Deudas: cada banco cobra su interés (aumenta el saldo) y se hace un pago
+      // mínimo automático del 5% del saldo, limitado por el efectivo disponible.
+      // Si el interés supera el pago mínimo (bancos caros), ¡la deuda crece!
+      nuevo.deudas = (nuevo.deudas || []).map(d => {
+        const tasa = getBanco(d.bancoId).tasa;
+        const interes = d.monto * tasa * factor;
+        const minObjetivo = d.monto * 0.05 * factor;
+        const pago = Math.max(0, Math.min(nuevo.dinero, minObjetivo));
+        nuevo.dinero -= pago;
+        return { ...d, monto: Math.max(0, d.monto + interes - pago) };
+      }).filter(d => d.monto > 1);
       checkWin(nuevo);
       return nuevo;
     });
@@ -866,6 +1055,7 @@ export default function RatRaceGame() {
         setEnergia(eng => {
           const selected = elegirEvento(fin, eng);
           setEvento(selected);
+          sfx("coin");
           checkMentor(fin, eng);
           return eng;
         });
@@ -902,6 +1092,7 @@ export default function RatRaceGame() {
         if (resolved.tipo === "ganado") setMentorTip(MENTOR_TIPS.buenaDecision);
         if (resolved.impacto?.activosMes > 0) setMentorTip(MENTOR_TIPS.invertir);
         addLog(`"${evento.titulo}" → ${resolved.titulo}`, resolved.tipo === "ganado" ? "success" : resolved.tipo === "perdido" ? "danger" : "info");
+        sfx(resolved.tipo === "ganado" ? "success" : resolved.tipo === "perdido" ? "error" : "click");
         setEvento(null);
         setOutcome(resolved); // shows immediately
         return;
@@ -914,7 +1105,9 @@ export default function RatRaceGame() {
       if (imp.dinero) nuevo.dinero += imp.dinero;
       if (imp.ingreso) nuevo.ingresoMensual += imp.ingreso;
       if (imp.gastos) nuevo.gastosMensuales += imp.gastos;
-      if (imp.deuda) nuevo.deudas += imp.deuda;
+      // Deuda nueva por evento → entra como préstamo de CrediMax (6%). Deuda negativa → abono.
+      if (imp.deuda > 0) nuevo.deudas = agregarDeuda(nuevo.deudas || [], imp.deuda, "credimax");
+      if (imp.deuda < 0) nuevo.deudas = pagarDeudaGlobal(nuevo.deudas || [], -imp.deuda);
       if (imp.activosMes) nuevo.activosPasivos += imp.activosMes;
       checkWin(nuevo); return nuevo;
     });
@@ -939,6 +1132,7 @@ export default function RatRaceGame() {
     if (imp.activosMes > 0) setMentorTip(MENTOR_TIPS.invertir);
     addLog(`"${evento.titulo}" → ${opcion} (${resultMsg})`, esPositivo ? "success" : esNegativo ? "danger" : "info");
     showNotif(resultMsg, esPositivo ? C.green : esNegativo ? C.red : C.blue);
+    sfx(esPositivo ? "success" : esNegativo ? "error" : "click");
     setEvento(null);
   };
 
@@ -951,6 +1145,7 @@ export default function RatRaceGame() {
     setHabilidades(prev => [...prev, skill.id]);
     addLog(`Aprendiste: ${skill.nombre}`, "success");
     showNotif(`✓ ${skill.nombre} desbloqueada`, C.green);
+    sfx("success");
   };
 
   const descansar = () => {
@@ -960,6 +1155,63 @@ export default function RatRaceGame() {
     setTimeout(() => setAvatarPos("casa"), 1200);
     addLog("Descansaste — energía recuperada", "info");
     showNotif("Descansaste ✓", C.blue);
+    sfx("click");
+  };
+
+  // ============================================================
+  // ACCIONES DE DEUDA (liquidar, abonar, pedir préstamo)
+  // ============================================================
+  const abonarDeuda = (deudaId, cantidad) => {
+    setFinances(prev => {
+      const deuda = (prev.deudas || []).find(d => d.id === deudaId);
+      if (!deuda) return prev;
+      const pago = Math.min(cantidad, deuda.monto, prev.dinero);
+      if (pago <= 0) { showNotif("Sin efectivo suficiente", C.red); return prev; }
+      const deudas = prev.deudas.map(d => d.id === deudaId ? { ...d, monto: d.monto - pago } : d).filter(d => d.monto > 1);
+      addLog(`Abonaste ${fmt(pago)} a ${getBanco(deuda.bancoId).nombre}`, "success");
+      showNotif(`Abonaste ${fmt(pago)} ✓`, C.green);
+      sfx("pay");
+      return { ...prev, dinero: prev.dinero - pago, deudas };
+    });
+  };
+
+  const liquidarDeuda = (deudaId) => {
+    setFinances(prev => {
+      const deuda = (prev.deudas || []).find(d => d.id === deudaId);
+      if (!deuda) return prev;
+      if (prev.dinero < deuda.monto) { showNotif("No te alcanza para liquidarla. Abona lo que puedas.", C.yellow); return prev; }
+      const deudas = prev.deudas.filter(d => d.id !== deudaId);
+      addLog(`💥 ¡Liquidaste tu deuda con ${getBanco(deuda.bancoId).nombre}!`, "success");
+      showNotif("¡Deuda liquidada! 🎉", C.green);
+      sfx("success");
+      return { ...prev, dinero: prev.dinero - deuda.monto, deudas };
+    });
+  };
+
+  const pedirPrestamo = (bancoId, cantidad) => {
+    setFinances(prev => {
+      addLog(`Pediste ${fmt(cantidad)} a ${getBanco(bancoId).nombre} (${Math.round(getBanco(bancoId).tasa*100)}%/mes)`, "danger");
+      showNotif(`+${fmt(cantidad)} en efectivo (deuda)`, C.yellow);
+      sfx("coin");
+      return { ...prev, dinero: prev.dinero + cantidad, deudas: agregarDeuda(prev.deudas || [], cantidad, bancoId) };
+    });
+  };
+
+  // Consejero: da un consejo contextual al pulsar el botón del mentor.
+  const pedirConsejo = () => {
+    if (!finances) return;
+    const f = finances, total = totalDeuda(f), pasivo = f.activosPasivos, gastos = f.gastosMensuales;
+    let cat = "general";
+    const tieneRapidito = (f.deudas || []).some(d => d.bancoId === "rapidito");
+    if (tieneRapidito) cat = "bancoCaro";
+    else if (interesMensual(f) > total * 0.05 && total > 0) cat = "deudaCrece";
+    else if (total > f.ingresoMensual * 1.5 && total > 0) cat = "deudaAlta";
+    else if (pasivo >= gastos * 0.7 && pasivo < gastos) cat = "cercaLibertad";
+    else if (pasivo === 0) cat = "pocoActivo";
+    else if (flujoMensual > 0) cat = "buenFlujo";
+    const lista = MENTOR_CONSEJOS[cat] || MENTOR_CONSEJOS.general;
+    setMentorTip(lista[Math.floor(Math.random() * lista.length)]);
+    sfx("click");
   };
 
   if (!finances && screen === "game") return null;
@@ -980,8 +1232,13 @@ export default function RatRaceGame() {
         <p style={{ color: C.textSecondary, fontSize: 14, lineHeight: 1.8, margin: "0 0 40px" }}>
           Toma decisiones financieras reales. Aprende habilidades. Construye activos. Cuida tu energía. Sal del rat race.
         </p>
-        <button onClick={() => setScreen("select")} style={{ background: `linear-gradient(135deg, ${C.purple}, #9333EA)`, color: "white", border: "none", borderRadius: 16, padding: "15px 48px", fontSize: 15, fontWeight: 700, cursor: "pointer", width: "100%", marginBottom: 12 }}>
-          Comenzar →
+        {haySaved && (
+          <button onClick={continuarPartida} style={{ background: `linear-gradient(135deg, ${C.green}, #00A878)`, color: "#03281b", border: "none", borderRadius: 16, padding: "15px 48px", fontSize: 15, fontWeight: 800, cursor: "pointer", width: "100%", marginBottom: 10 }}>
+            ▶️ Continuar partida
+          </button>
+        )}
+        <button onClick={() => { if (haySaved) borrarPartida(); setScreen("select"); }} style={{ background: haySaved ? C.surface : `linear-gradient(135deg, ${C.purple}, #9333EA)`, color: haySaved ? C.textSecondary : "white", border: haySaved ? `1px solid ${C.border}` : "none", borderRadius: 16, padding: "15px 48px", fontSize: 15, fontWeight: 700, cursor: "pointer", width: "100%", marginBottom: 12 }}>
+          {haySaved ? "Empezar de nuevo" : "Comenzar →"}
         </button>
         <p style={{ color: C.textMuted, fontSize: 11 }}>Meta: Ingresos pasivos {">"} Gastos mensuales</p>
       </div>
@@ -1074,10 +1331,11 @@ export default function RatRaceGame() {
   // ============================================================
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Inter', -apple-system, sans-serif", maxWidth: 420, margin: "0 auto", paddingBottom: 100 }}>
+      <style>{ANIMACIONES_CSS}</style>
 
       {/* Notification */}
       {notification && (
-        <div style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: notification.color, color: "#fff", padding: "9px 22px", borderRadius: 99, fontSize: 13, fontWeight: 700, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", whiteSpace: "nowrap", pointerEvents: "none" }}>
+        <div style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: notification.color, color: "#fff", padding: "9px 22px", borderRadius: 99, fontSize: 13, fontWeight: 700, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", whiteSpace: "nowrap", pointerEvents: "none", animation: "rr-slidein 0.25s ease" }}>
           {notification.msg}
         </div>
       )}
@@ -1113,15 +1371,28 @@ export default function RatRaceGame() {
         <Avatar position={avatarPos} profileEmoji={profile.emoji} energia={energia} />
         {mentorTip && <MentorTip tip={mentorTip} onClose={() => setMentorTip(null)} />}
 
+        {/* Controles rápidos: consejo del mentor y sonido */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <button onClick={pedirConsejo} style={{ flex: 1, background: `linear-gradient(135deg, #1A1640, #241C5A)`, border: `1px solid ${C.purple}44`, color: "#C4BBFF", borderRadius: 12, padding: "10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            🧑‍🏫 Pedir consejo
+          </button>
+          <button onClick={() => { setMuted(m => !m); }} title="Activar/silenciar sonido" style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 12, padding: "10px 14px", fontSize: 14, cursor: "pointer" }}>
+            {muted ? "🔇" : "🔊"}
+          </button>
+        </div>
+
         {/* Tabs */}
         <div style={{ display: "flex", background: C.surface, borderRadius: 12, padding: 4, marginBottom: 14, gap: 2 }}>
-          {[["balance", "💰"], ["habilidades", "⚡"], ["log", "📋"]].map(([tab, icon]) => (
-            <button key={tab} onClick={() => setActiveTab(tab)} style={{
+          {[["balance", "💰", "Balance"], ["deudas", "💳", "Deudas"], ["habilidades", "⚡", "Skills"], ["log", "📋", "Log"]].map(([tab, icon, label]) => (
+            <button key={tab} onClick={() => { setActiveTab(tab); sfx("click"); }} style={{
               flex: 1, background: activeTab === tab ? C.card : "none", border: activeTab === tab ? `1px solid ${C.border}` : "1px solid transparent",
               color: activeTab === tab ? C.textPrimary : C.textSecondary, padding: "8px 4px", borderRadius: 8,
-              fontSize: 11, fontWeight: 600, cursor: "pointer", textTransform: "capitalize"
+              fontSize: 11, fontWeight: 600, cursor: "pointer", position: "relative"
             }}>
-              {icon} {tab === "habilidades" ? "Skills" : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {icon} {label}
+              {tab === "deudas" && totalDeuda(finances) > 0 && (
+                <span style={{ position: "absolute", top: 2, right: 4, width: 7, height: 7, borderRadius: 99, background: C.red }} />
+              )}
             </button>
           ))}
         </div>
@@ -1133,7 +1404,7 @@ export default function RatRaceGame() {
               { label: "Ingresos mensuales", value: fmt(finances.ingresoMensual), color: C.green, icon: "📥" },
               { label: "Gastos mensuales", value: fmt(finances.gastosMensuales), color: C.red, icon: "📤" },
               { label: "Ingresos pasivos", value: fmt(finances.activosPasivos), color: C.purple, icon: "🔁" },
-              { label: "Deudas totales", value: fmt(finances.deudas), color: finances.deudas > 0 ? C.yellow : C.green, icon: "💳" },
+              { label: "Deudas totales", value: fmt(totalDeuda(finances)), color: totalDeuda(finances) > 0 ? C.yellow : C.green, icon: "💳" },
             ].map(item => (
               <div key={item.label} style={{ background: C.card, borderRadius: 12, padding: "13px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", border: `1px solid ${C.border}` }}>
                 <span style={{ color: C.textSecondary, fontSize: 13 }}>{item.icon} {item.label}</span>
@@ -1158,6 +1429,87 @@ export default function RatRaceGame() {
                 <p style={{ color: C.textMuted, fontSize: 11, margin: "8px 0 0" }}>Estos clientes pueden convertirse en contratos en próximos ciclos.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* DEUDAS TAB */}
+        {activeTab === "deudas" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, animation: "rr-fadein 0.3s ease" }}>
+            {/* Resumen */}
+            <div style={{ background: C.card, borderRadius: 12, padding: "13px 16px", border: `1px solid ${C.border}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ color: C.textSecondary, fontSize: 13 }}>💳 Deuda total</span>
+                <span style={{ color: totalDeuda(finances) > 0 ? C.red : C.green, fontWeight: 800, fontSize: 16 }}>{fmt(totalDeuda(finances))}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: C.textMuted, fontSize: 12 }}>Interés que se cobra este mes</span>
+                <span style={{ color: C.yellow, fontWeight: 700, fontSize: 13 }}>{fmt(interesMensual(finances))}/mes</span>
+              </div>
+            </div>
+
+            {/* Lista de deudas por banco */}
+            {(finances.deudas || []).length === 0 ? (
+              <div style={{ background: `${C.green}11`, border: `1px solid ${C.green}33`, borderRadius: 12, padding: "16px", textAlign: "center" }}>
+                <div style={{ fontSize: 28, marginBottom: 6 }}>🎉</div>
+                <p style={{ color: C.green, fontSize: 13, margin: 0, fontWeight: 700 }}>¡Estás libre de deudas!</p>
+                <p style={{ color: C.textMuted, fontSize: 11, margin: "6px 0 0" }}>Sin deudas, todo tu flujo va a construir riqueza.</p>
+              </div>
+            ) : (
+              finances.deudas.map(d => {
+                const b = getBanco(d.bancoId);
+                const interes = d.monto * b.tasa;
+                const puede1000 = finances.dinero >= 1000;
+                const puede5000 = finances.dinero >= 5000;
+                const puedeLiquidar = finances.dinero >= d.monto;
+                const creciendo = interes > d.monto * 0.05; // el interés supera el pago mínimo
+                return (
+                  <div key={d.id} style={{ background: C.card, borderRadius: 12, padding: "13px 16px", border: `1px solid ${b.color}44`, animation: creciendo ? "rr-pulse 2s infinite" : "none" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div>
+                        <span style={{ color: C.textPrimary, fontWeight: 700, fontSize: 14 }}>{b.emoji} {b.nombre}</span>
+                        <div style={{ color: b.color, fontSize: 11, fontWeight: 700 }}>{Math.round(b.tasa * 100)}%/mes · interés {fmt(interes)}/mes</div>
+                      </div>
+                      <span style={{ color: C.red, fontWeight: 800, fontSize: 16 }}>{fmt(d.monto)}</span>
+                    </div>
+                    {creciendo && <p style={{ color: C.red, fontSize: 10, margin: "0 0 8px" }}>⚠️ El interés supera el pago mínimo: esta deuda crece sola. ¡Abona fuerte!</p>}
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      <button disabled={!puede1000} onClick={() => abonarDeuda(d.id, 1000)} style={btnDeuda(puede1000, C.surface, C.textPrimary)}>Abonar $1,000</button>
+                      <button disabled={!puede5000} onClick={() => abonarDeuda(d.id, 5000)} style={btnDeuda(puede5000, C.surface, C.textPrimary)}>Abonar $5,000</button>
+                      <button disabled={!puedeLiquidar} onClick={() => liquidarDeuda(d.id)} style={btnDeuda(puedeLiquidar, `${C.green}22`, C.green)}>Liquidar {fmt(d.monto)}</button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+
+            {/* Solicitar préstamo */}
+            <div style={{ background: C.surface, borderRadius: 12, padding: "14px 16px", border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 12, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>🏦 Solicitar préstamo</div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                {Object.values(BANCOS).map(b => (
+                  <button key={b.id} onClick={() => { setPrestamoBanco(b.id); sfx("click"); }} style={{
+                    flex: 1, background: prestamoBanco === b.id ? `${b.color}22` : C.card,
+                    border: `1px solid ${prestamoBanco === b.id ? b.color : C.border}`, color: prestamoBanco === b.id ? b.color : C.textSecondary,
+                    borderRadius: 10, padding: "8px 4px", fontSize: 10, fontWeight: 700, cursor: "pointer"
+                  }}>
+                    {b.emoji}<br />{b.nombre}<br /><span style={{ fontSize: 11 }}>{Math.round(b.tasa * 100)}%/mes</span>
+                  </button>
+                ))}
+              </div>
+              <p style={{ color: C.textMuted, fontSize: 11, margin: "0 0 8px" }}>{getBanco(prestamoBanco).desc}</p>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[2000, 5000, 10000].map(cant => (
+                  <button key={cant} onClick={() => pedirPrestamo(prestamoBanco, cant)} style={{
+                    flex: 1, background: C.card, border: `1px solid ${C.border}`, color: C.textPrimary,
+                    borderRadius: 10, padding: "10px 4px", fontSize: 12, fontWeight: 700, cursor: "pointer"
+                  }}>+{fmt(cant)}</button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ background: `${C.purple}11`, border: `1px solid ${C.purple}33`, borderRadius: 10, padding: "10px 14px" }}>
+              <p style={{ color: "#C4BBFF", fontSize: 11, margin: 0, lineHeight: 1.6 }}>💡 Cada mes se cobra el interés y un pago mínimo automático (5% del saldo). En bancos caros el interés supera el mínimo y la deuda crece. <strong>Liquida o abona</strong> para romper el ciclo.</p>
+            </div>
           </div>
         )}
 

@@ -34,7 +34,18 @@ npm run preview  # sirve la versión de producción para probarla
   crisis económicas ("cisnes negros").
 - **Sistema de objeciones de ventas**: practica respuestas reales a clientes
   ("está muy caro", "déjame pensarlo"...) y aprende la lección detrás de cada una.
-- **Mentor**: te da consejos según tu situación financiera.
+- **Mentor / consejero**: te da consejos contextuales según tu situación, y
+  puedes pedirle consejo cuando quieras con el botón "🧑‍🏫 Pedir consejo".
+- **Sistema de deuda con bancos ficticios**: pestaña 💳 **Deudas** donde:
+  - Pides préstamos eligiendo banco y cantidad. Cada banco tiene su tasa
+    mensual: 🏛️ Banco Popular (3%), 🏦 CrediMax (6%), 💸 Préstamos Rapidito (8%).
+  - Cada mes se cobra el interés y un pago mínimo automático. En bancos caros
+    el interés supera el mínimo y **la deuda crece sola** (interés compuesto).
+  - Puedes **Liquidar** (pagar todo) o **Abonar** (pago parcial) cuando quieras.
+- **Guardado automático**: tu partida se guarda en el navegador. Al volver,
+  puedes **Continuar** donde la dejaste.
+- **Sonido y animaciones**: efectos de sonido (con botón 🔊/🔇 para silenciar)
+  y animaciones sutiles.
 - **Meta**: ingresos pasivos `>` gastos mensuales.
 
 ## 🗂️ Estructura del proyecto
