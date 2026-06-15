@@ -1,41 +1,69 @@
-# 🐀 La Carrera de la Rata
+# 🐀 Rat Race — La carrera que no te enseñaron
 
-Un pequeño juego de **educación financiera** hecho con HTML, CSS y JavaScript puro,
-inspirado en *Cashflow* de Robert Kiyosaki.
+Juego de **educación financiera** inspirado en *Cashflow* de Robert Kiyosaki.
+Tomas decisiones financieras reales, aprendes habilidades, construyes activos
+y cuidas tu energía. **Ganas cuando tu ingreso pasivo supera tus gastos
+mensuales = libertad financiera.** 🏆
 
-## 🎯 Objetivo
-Escapar de la "carrera de la rata": lograr que tu **ingreso pasivo** (dinero que
-entra sin trabajar, como rentas o dividendos) sea **mayor o igual a tus gastos
-totales**. Ese día alcanzas la **libertad financiera** y ganas. 🏆
+## ▶️ Cómo ejecutarlo
 
-## ▶️ Cómo jugar
-1. Abre `index.html` en tu navegador (doble clic basta, no necesita instalación).
-2. Elige una profesión.
-3. Tira el dado 🎲 para avanzar por el tablero.
-4. Cae en distintas casillas:
-   - 💰 **Día de paga**: cobras tu flujo de caja mensual.
-   - 💡 **Oportunidad**: compra activos que generan ingreso pasivo.
-   - 🛍️ **Gasto (doodad)**: imprevistos que se comen tu dinero.
-   - 📊 **Mercado**: vende tus activos con ganancia.
-   - ❤️ **Caridad**, 👶 **Bebé**, 📉 **Despido**: eventos que cambian tu economía.
-5. Compra activos con tu efectivo hasta que tu ingreso pasivo cubra tus gastos.
+Necesitas tener [Node.js](https://nodejs.org) instalado. Luego:
+
+```bash
+npm install      # instala las dependencias (solo la primera vez)
+npm run dev      # arranca el juego en modo desarrollo
+```
+
+Abre la URL que aparece en la terminal (normalmente `http://localhost:5173`).
+
+Otros comandos:
+
+```bash
+npm run build    # genera la versión optimizada en la carpeta dist/
+npm run preview  # sirve la versión de producción para probarla
+```
+
+## 🎮 Mecánicas del juego
+
+- **4 perfiles** para empezar: Estudiante, Freelancer, Empleado y Doctor/Profesionista.
+  Cada uno con distinto dinero, deudas, habilidades y dificultad.
+- **Árbol de habilidades** (Oficios, Digital, Ventas, Finanzas): aprende skills
+  que desbloquean mejores oportunidades y suben tus probabilidades de éxito.
+- **Sistema de energía**: cada ciclo te cansa; descansa para no quedarte sin energía.
+- **Eventos**: chambas, oportunidades, inversiones, gastos imprevistos y hasta
+  crisis económicas ("cisnes negros").
+- **Sistema de objeciones de ventas**: practica respuestas reales a clientes
+  ("está muy caro", "déjame pensarlo"...) y aprende la lección detrás de cada una.
+- **Mentor**: te da consejos según tu situación financiera.
+- **Meta**: ingresos pasivos `>` gastos mensuales.
+
+## 🗂️ Estructura del proyecto
+
+```
+.
+├── index.html            # punto de entrada HTML
+├── src/
+│   ├── main.jsx          # arranque de React
+│   └── RatRace.jsx       # ¡todo el juego! (componente principal)
+├── package.json          # dependencias y scripts
+├── vite.config.js        # configuración de Vite
+└── prototipo-vanilla/    # primera versión simple en HTML/CSS/JS puro
+                          # (se conserva como referencia de aprendizaje)
+```
 
 ## 📚 Lo que enseña
-- La diferencia entre **salario** (trabajar por dinero) e **ingreso pasivo**
-  (que el dinero trabaje por ti).
-- Por qué los **gastos** y los caprichos (*doodads*) te mantienen en la carrera.
-- Cómo los **activos** te acercan a la libertad financiera.
 
-## 🛠️ Estructura del código
-- `index.html` — la estructura de la página.
-- `style.css` — los estilos y colores.
-- `game.js` — toda la lógica del juego (¡muy comentada para aprender!).
+- La diferencia entre **ingresos activos** (trabajar por dinero) e **ingresos
+  pasivos** (que el dinero y los activos trabajen por ti).
+- Cómo las **deudas** y los **gastos** te mantienen atrapado en el rat race.
+- Por qué **aprender habilidades** es la mejor inversión.
+- Cómo manejar **objeciones de ventas** en la vida real.
 
-## 💡 Ideas para seguir aprendiendo (mejoras futuras)
-- Añadir un **modo multijugador** por turnos.
+## 💡 Ideas para seguir mejorando
+
 - Guardar la partida con `localStorage`.
-- Añadir la **"vía rápida"** (Fast Track) después de escapar de la carrera.
-- Sonidos al tirar el dado y al ganar.
-- Más profesiones, oportunidades y eventos.
+- Añadir la **"vía rápida"** (Fast Track) después de salir del rat race.
+- Más eventos, perfiles y habilidades.
+- Sonidos y animaciones.
 
 ¡Diviértete y aprende! 🚀

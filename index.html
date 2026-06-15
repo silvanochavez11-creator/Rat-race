@@ -1,117 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>La Carrera de la Rata 🐀 — Camino a la Libertad Financiera</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <header class="topbar">
-    <h1>🐀 La Carrera de la Rata</h1>
-    <p class="subtitle">Escapa de la rutina: logra que tu <strong>ingreso pasivo</strong> supere tus <strong>gastos</strong>.</p>
-  </header>
-
-  <main class="layout">
-    <!-- ============ PANEL: ESTADO FINANCIERO ============ -->
-    <section class="panel finanzas" aria-label="Estado financiero">
-      <h2>📊 Tu Estado Financiero</h2>
-
-      <div class="profesion">
-        <span id="profesion-nombre">—</span>
-      </div>
-
-      <div class="bloque">
-        <h3>Ingresos</h3>
-        <ul class="lista">
-          <li><span>Salario</span><span id="ing-salario">$0</span></li>
-          <li class="destacado-verde"><span>Ingreso pasivo</span><span id="ing-pasivo">$0</span></li>
-          <li class="total"><span>Total ingresos</span><span id="ing-total">$0</span></li>
-        </ul>
-      </div>
-
-      <div class="bloque">
-        <h3>Gastos</h3>
-        <ul class="lista">
-          <li><span>Impuestos y deudas</span><span id="gasto-fijo">$0</span></li>
-          <li><span>Hijos (<span id="num-hijos">0</span>)</span><span id="gasto-hijos">$0</span></li>
-          <li class="total"><span>Total gastos</span><span id="gasto-total">$0</span></li>
-        </ul>
-      </div>
-
-      <div class="bloque flujo">
-        <h3>Flujo de caja mensual</h3>
-        <p id="flujo-mensual" class="numero-grande">$0</p>
-      </div>
-
-      <div class="bloque">
-        <h3>💵 Efectivo disponible</h3>
-        <p id="efectivo" class="numero-grande">$0</p>
-      </div>
-
-      <!-- Barra de progreso hacia la libertad financiera -->
-      <div class="bloque">
-        <h3>🎯 Camino a la libertad</h3>
-        <div class="barra-progreso">
-          <div id="barra-libertad" class="barra-relleno"></div>
-        </div>
-        <p class="ayuda">
-          Ingreso pasivo <strong id="prog-pasivo">$0</strong> /
-          Gastos <strong id="prog-gastos">$0</strong>
-        </p>
-      </div>
-    </section>
-
-    <!-- ============ PANEL CENTRAL: TABLERO Y JUEGO ============ -->
-    <section class="panel tablero-panel">
-      <div id="tablero" class="tablero" aria-label="Tablero de juego"></div>
-
-      <div class="controles">
-        <button id="btn-tirar" class="btn-principal">🎲 Tirar el dado</button>
-        <div id="dado" class="dado">—</div>
-      </div>
-
-      <div id="mensaje" class="mensaje">
-        Elige tu profesión para comenzar.
-      </div>
-    </section>
-
-    <!-- ============ PANEL: ACTIVOS Y PASIVOS ============ -->
-    <section class="panel cartera" aria-label="Cartera de inversiones">
-      <h2>🏦 Tus Activos</h2>
-      <ul id="lista-activos" class="lista-cartera">
-        <li class="vacio">Aún no tienes inversiones. ¡Aprovecha las oportunidades!</li>
-      </ul>
-
-      <h2>📉 Tus Pasivos</h2>
-      <ul id="lista-pasivos" class="lista-cartera">
-        <li class="vacio">Sin deudas registradas.</li>
-      </ul>
-
-      <h2>📜 Registro</h2>
-      <ul id="historial" class="historial"></ul>
-    </section>
-  </main>
-
-  <!-- ============ MODAL DE EVENTOS / CARTAS ============ -->
-  <div id="modal" class="modal oculto" role="dialog" aria-modal="true">
-    <div class="modal-contenido">
-      <h2 id="modal-titulo">Título</h2>
-      <p id="modal-texto">Texto del evento</p>
-      <div id="modal-detalles" class="modal-detalles"></div>
-      <div id="modal-botones" class="modal-botones"></div>
-    </div>
-  </div>
-
-  <!-- Pantalla de selección de profesión al inicio -->
-  <div id="inicio" class="modal">
-    <div class="modal-contenido">
-      <h2>👔 Elige tu profesión</h2>
-      <p>Cada profesión empieza con un salario, gastos y efectivo distintos. ¡Todas pueden ganar!</p>
-      <div id="lista-profesiones" class="lista-profesiones"></div>
-    </div>
-  </div>
-
-  <script src="game.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🐀 Rat Race — La carrera que no te enseñaron</title>
+    <style>
+      /* Reset mínimo: el juego usa estilos en línea, esto solo limpia el fondo */
+      html, body, #root { margin: 0; padding: 0; background: #080C14; }
+      * { box-sizing: border-box; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
