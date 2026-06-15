@@ -58,6 +58,24 @@ const SKILL_TREE = {
       { id: "inversion_basica", nombre: "Inversión básica", costo: 2500, energiaCosto: 20, descripcion: "CETES, fondos y bolsa de valores.", requiere: "presupuesto" },
       { id: "bienes_raices", nombre: "Bienes raíces", costo: 6000, energiaCosto: 30, descripcion: "Inversión en propiedades para rentar.", requiere: "inversion_basica" },
     ]
+  },
+  construccion: {
+    label: "Construcción", icon: "🧱", color: "#D98A4E",
+    skills: [
+      { id: "albanileria", nombre: "Albañilería", costo: 1000, energiaCosto: 20, descripcion: "Construcción de muros, pisos y obra básica.", requiere: null },
+      { id: "carpinteria", nombre: "Carpintería", costo: 1400, energiaCosto: 18, descripcion: "Muebles y estructuras de madera.", requiere: null },
+      { id: "herreria", nombre: "Herrería", costo: 1800, energiaCosto: 22, descripcion: "Estructuras y protecciones de metal.", requiere: "albanileria" },
+      { id: "maestro_obra", nombre: "Maestro de obra", costo: 4500, energiaCosto: 35, descripcion: "Diriges obras y equipos de construcción.", requiere: "herreria" },
+    ]
+  },
+  negocios: {
+    label: "Negocios", icon: "🏢", color: "#22D3EE",
+    skills: [
+      { id: "emprendimiento", nombre: "Emprendimiento", costo: 1500, energiaCosto: 15, descripcion: "Bases para iniciar tu propio negocio.", requiere: null },
+      { id: "contratar_personal", nombre: "Contratar personal", costo: 2800, energiaCosto: 20, descripcion: "Aprende a contratar y delegar para no hacerlo todo tú.", requiere: "emprendimiento" },
+      { id: "agencia_marketing", nombre: "Agencia de marketing", costo: 5500, energiaCosto: 30, descripcion: "Formas una empresa con empleados que trabaja por ti.", requiere: "contratar_personal", ingresoPasivo: 1200 },
+      { id: "escalar_negocio", nombre: "Escalar negocio", costo: 9500, energiaCosto: 40, descripcion: "Sistematizas y multiplicas tu empresa.", requiere: "agencia_marketing", ingresoPasivo: 2800 },
+    ]
   } };
 
 // ============================================================
@@ -126,7 +144,12 @@ const EVENTOS = [
   { id: "e19", tipo: "black_swan", titulo: "Tarjeta de crédito fácil", descripcion: "Te ofrecen una tarjeta con línea inmediata. Dinero ahora... que pagarás con intereses después.", opciones: ["Aceptar $3,000 (deuda)", "Rechazar (no, gracias)", "Sacar efectivo $2,000 (deuda)"], impacto: [{ dinero: 3000, deuda: 5000, energia: -5 }, { dinero: 0, energia: 5 }, { dinero: 2000, deuda: 3000, energia: -5 }], emoji: "💳", requiereHabilidad: null },
   { id: "e20", tipo: "chamba", titulo: "Repartir paquetes", descripcion: "Hay temporada alta y necesitan repartidores este fin de semana.", opciones: ["Trabajar $700", "Descansar", "Doble turno $1,300"], impacto: [{ dinero: 700, energia: -20 }, { dinero: 0, energia: 20 }, { dinero: 1300, energia: -35 }], emoji: "📦", requiereHabilidad: null },
   { id: "e21", tipo: "inversion", titulo: "Tanda con amigos", descripcion: "Tus amigos organizan una tanda. Disciplina de ahorro en grupo.", opciones: ["Entrar $1,500", "Pasar", "Entrar doble $3,000"], impacto: [{ dinero: -1500, activosMes: 90, energia: -3 }, { dinero: 0, energia: 0 }, { dinero: -3000, activosMes: 190, energia: -3 }], emoji: "🤲", requiereHabilidad: "ahorro" },
-  { id: "e22", tipo: "oportunidad", titulo: "Vender por internet", descripcion: "Puedes montar una tiendita en línea con lo que ya sabes de redes.", opciones: ["Montar tienda $2,000", "Pasar", "Invertir en inventario $4,000"], impacto: [{ dinero: -2000, ingreso: 1500, energia: -20 }, { dinero: 0, energia: 0 }, { dinero: -4000, ingreso: 3200, energia: -30 }], emoji: "🛒", requiereHabilidad: "redes_sociales" }, ];
+  { id: "e22", tipo: "oportunidad", titulo: "Vender por internet", descripcion: "Puedes montar una tiendita en línea con lo que ya sabes de redes.", opciones: ["Montar tienda $2,000", "Pasar", "Invertir en inventario $4,000"], impacto: [{ dinero: -2000, ingreso: 1500, energia: -20 }, { dinero: 0, energia: 0 }, { dinero: -4000, ingreso: 3200, energia: -30 }], emoji: "🛒", requiereHabilidad: "redes_sociales" },
+  { id: "e23", tipo: "chamba", titulo: "Construir una barda", descripcion: "Un vecino quiere levantar la barda de su terreno.", opciones: ["Cobrar $2,500", "Rechazar", "Cobrar $4,000 con acabado"], impacto: [{ dinero: 2500, energia: -30 }, { dinero: 0, energia: 0 }, { dinero: 4000, energia: -40 }], emoji: "🧱", requiereHabilidad: "albanileria" },
+  { id: "e24", tipo: "chamba", titulo: "Fabricar muebles a medida", descripcion: "Una familia quiere un clóset y una mesa de madera.", opciones: ["Cobrar $3,000", "Rechazar", "Cobrar $5,000 línea premium"], impacto: [{ dinero: 3000, energia: -25 }, { dinero: 0, energia: 0 }, { dinero: 5000, energia: -35 }], emoji: "🪚", requiereHabilidad: "carpinteria" },
+  { id: "e25", tipo: "chamba", titulo: "Portón de herrería", descripcion: "Necesitan un portón de metal con protección.", opciones: ["Cobrar $3,500", "Rechazar", "Cobrar $6,000 reforzado"], impacto: [{ dinero: 3500, energia: -30 }, { dinero: 0, energia: 0 }, { dinero: 6000, energia: -40 }], emoji: "🔩", requiereHabilidad: "herreria" },
+  { id: "e26", tipo: "oportunidad", titulo: "Dirigir una obra", descripcion: "Te ofrecen dirigir la construcción de una casa completa.", opciones: ["Aceptar la obra", "Rechazar", "Negociar mejores términos"], impacto: [{ dinero: 15000, energia: -40 }, { dinero: 0, energia: 0 }, { dinero: 22000, energia: -50 }], emoji: "🏗️", requiereHabilidad: "maestro_obra" },
+  { id: "e27", tipo: "oportunidad", titulo: "Cuenta grande para tu agencia", descripcion: "Una empresa quiere contratar a tu agencia de marketing por meses.", opciones: ["Presentar propuesta", "Rechazar", "Negociar retainer anual"], impacto: [{ dinero: 8000, ingreso: 3000, energia: -25 }, { dinero: 0, energia: 0 }, { dinero: 12000, ingreso: 5000, energia: -35 }], emoji: "📣", requiereHabilidad: "agencia_marketing" }, ];
 
 // ============================================================
 // OBJECTION / NEGOTIATION SYSTEM
@@ -276,7 +299,7 @@ const OUTCOMES = {
   },
   contrato_grande: {
     stat: "carisma",
-    habilidadBonus: { cierre: 20, negociacion: 30, marketing: 15 },
+    habilidadBonus: { cierre: 20, negociacion: 30, marketing: 15, maestro_obra: 25, agencia_marketing: 25, escalar_negocio: 30 },
     resultados: [
       {
         tipo: "ganado",
@@ -318,7 +341,7 @@ const OUTCOMES = {
   },
   chamba_oficio: {
     stat: "habilidades",
-    habilidadBonus: { mecanica_avanzada: 25, electricidad: 20, plomeria: 15 },
+    habilidadBonus: { mecanica_avanzada: 25, electricidad: 20, plomeria: 15, albanileria: 18, carpinteria: 18, herreria: 20, maestro_obra: 30 },
     resultados: [
       {
         tipo: "ganado",
@@ -411,7 +434,12 @@ const EVENTO_OUTCOME_MAP = {
   e18: "contrato_grande",
   e7: "inversion",
   e8: "inversion",
-  e15: "inversion", };
+  e15: "inversion",
+  e23: "chamba_oficio",
+  e24: "chamba_oficio",
+  e25: "chamba_oficio",
+  e26: "contrato_grande",
+  e27: "contrato_grande", };
 
 // Calculate success probability based on skills
 const calcProbabilidad = (outcomeConfig, habilidades, resultado) => {
@@ -423,23 +451,31 @@ const calcProbabilidad = (outcomeConfig, habilidades, resultado) => {
   }
   return Math.min(prob, 95); };
 
-const resolveOutcome = (eventoId, habilidades) => {
+const resolveOutcome = (eventoId, habilidades, exp = 0) => {
   const categoria = EVENTO_OUTCOME_MAP[eventoId];
   if (!categoria) return null;
   const config = OUTCOMES[categoria];
-  // Calculate weighted probabilities
-  const totales = config.resultados.map(r => calcProbabilidad(config, habilidades, r));
+  // La experiencia sube la probabilidad de los resultados buenos.
+  const totales = config.resultados.map(r => calcProbabilidad(config, habilidades, r) + (r.tipo === "ganado" ? expBonusProb(exp) : 0));
   const suma = totales.reduce((a, b) => a + b, 0);
+  // La experiencia también mejora el pago de los contratos ganados.
+  const conExp = (resultado, prob) => {
+    const mult = expBonusPago(exp);
+    const impacto = { ...resultado.impacto };
+    if (resultado.tipo === "ganado") {
+      if (impacto.dinero) impacto.dinero = Math.round(impacto.dinero * mult);
+      if (impacto.ingreso) impacto.ingreso = Math.round(impacto.ingreso * mult);
+      if (impacto.activosMes) impacto.activosMes = Math.round(impacto.activosMes * mult);
+    }
+    const narrativa = resultado.narrativas[Math.floor(Math.random() * resultado.narrativas.length)];
+    return { ...resultado, impacto, narrativa, probabilidad: prob };
+  };
   let roll = Math.random() * suma;
   for (let i = 0; i < config.resultados.length; i++) {
     roll -= totales[i];
-    if (roll <= 0) {
-      const resultado = config.resultados[i];
-      const narrativa = resultado.narrativas[Math.floor(Math.random() * resultado.narrativas.length)];
-      return { ...resultado, narrativa, probabilidad: Math.round((totales[i] / suma) * 100) };
-    }
+    if (roll <= 0) return conExp(config.resultados[i], Math.round((totales[i] / suma) * 100));
   }
-  return { ...config.resultados[config.resultados.length - 1], narrativa: config.resultados[config.resultados.length - 1].narrativas[0] }; };
+  return conExp(config.resultados[config.resultados.length - 1], 0); };
 
 const MENTOR_TIPS = {
   deudaAlta: "💡 Tu deuda supera el doble de tu ingreso. Prioriza pagarla — los intereses te están comiendo vivo.",
@@ -518,6 +554,42 @@ const pagarDeudaGlobal = (deudas, monto) => {
 };
 
 // ============================================================
+// EXPERIENCIA (barra de nivel 1 a 10)
+// Sube con las semanas trabajadas y los trabajos completados.
+// A mayor nivel: más probabilidad de éxito y mejores pagos en contratos.
+// ============================================================
+const EXP_POR_NIVEL = 8;
+const expNivel = (exp) => Math.min(10, 1 + Math.floor((exp || 0) / EXP_POR_NIVEL));
+const expProgreso = (exp) => { const n = expNivel(exp); return n >= 10 ? 1 : ((exp || 0) % EXP_POR_NIVEL) / EXP_POR_NIVEL; };
+const expBonusProb = (exp) => (expNivel(exp) - 1) * 2;          // +2% de probabilidad por nivel
+const expBonusPago = (exp) => 1 + (expNivel(exp) - 1) * 0.03;   // hasta +27% en los pagos
+
+// ============================================================
+// MERCADO DE PERTENENCIAS (vehículos, casas, negocios)
+// plusvalia: cuánto cambia su valor cada mes (+ sube, - se deprecia)
+// renta: ingreso pasivo mensual si decides rentarlo
+// skillRenta: habilidad que mejora su rendimiento
+// ============================================================
+const MERCADO_BIENES = [
+  { id: "moto",       tipo: "vehiculo", nombre: "Motocicleta",        emoji: "🏍️", costo: 18000,  plusvalia: -0.010, renta: 700,   skillRenta: "mecanica_basica",    desc: "Para repartos. Se deprecia, pero rentada deja flujo." },
+  { id: "auto",       tipo: "vehiculo", nombre: "Automóvil",          emoji: "🚗",  costo: 90000,  plusvalia: -0.008, renta: 2800,  skillRenta: "mecanica_basica",    desc: "Rentable para apps de transporte." },
+  { id: "camioneta",  tipo: "vehiculo", nombre: "Camioneta de carga", emoji: "🚚",  costo: 160000, plusvalia: -0.006, renta: 5000,  skillRenta: "mecanica_avanzada",  desc: "Ideal para fletes y negocio de carga." },
+  { id: "casa_chica", tipo: "casa",     nombre: "Casa pequeña",       emoji: "🏠",  costo: 130000, plusvalia: 0.012,  renta: 3800,  skillRenta: "bienes_raices",      desc: "Se revaloriza y puedes rentarla." },
+  { id: "depa",       tipo: "casa",     nombre: "Departamento",       emoji: "🏢",  costo: 220000, plusvalia: 0.015,  renta: 6500,  skillRenta: "bienes_raices",      desc: "Buena plusvalía en zona céntrica." },
+  { id: "local",      tipo: "negocio",  nombre: "Local comercial",    emoji: "🏬",  costo: 360000, plusvalia: 0.018,  renta: 13000, skillRenta: "emprendimiento",     desc: "Réntalo o monta tu propio negocio." },
+];
+// Multiplicador de renta según tus habilidades (tus skills te ayudan a rendir más).
+const boostRenta = (bien, habilidades) => {
+  let mult = 1;
+  if (bien.skillRenta && habilidades.includes(bien.skillRenta)) mult += 0.30;
+  if (bien.tipo === "casa" && habilidades.includes("bienes_raices")) mult += 0.20;
+  if (bien.tipo === "negocio" && habilidades.includes("agencia_marketing")) mult += 0.30;
+  if (bien.tipo === "vehiculo" && habilidades.includes("mecanica_avanzada")) mult += 0.15;
+  return mult;
+};
+const rentaEfectiva = (bien, habilidades) => Math.round((bien.rentaBase ?? bien.renta) * boostRenta(bien, habilidades));
+
+// ============================================================
 // SONIDO (Web Audio API, sin archivos) — beeps generados
 // ============================================================
 let _audioCtx = null;
@@ -569,6 +641,8 @@ const SAVE_KEY = "ratrace_save_v1";
 // ============================================================
 const fmt = (n) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n);
 const getCicloLabel = (c) => ({ diario: "Día", semanal: "Semana", quincenal: "Quincena", mensual: "Mes" }[c]);
+// Cuánto representa un ciclo respecto a un mes (para escalar interés, plusvalía, etc.)
+const factorDe = (ciclo) => ciclo === "diario" ? 1/30 : ciclo === "semanal" ? 1/4 : ciclo === "quincenal" ? 1/2 : 1;
 
 // Estilo reutilizable para los botones de la pestaña de deudas
 const btnDeuda = (enabled, bg, color) => ({
@@ -903,6 +977,8 @@ export default function RatRaceGame() {
   const [muted, setMuted] = useState(() => { try { return localStorage.getItem("ratrace_muted") === "1"; } catch { return false; } });
   const [haySaved, setHaySaved] = useState(() => { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } });
   const [prestamoBanco, setPrestamoBanco] = useState("credimax");
+  const [experiencia, setExperiencia] = useState(0);
+  const [pertenencias, setPertenencias] = useState([]);
 
   // Mantener el flag de sonido sincronizado con el estado de "muted"
   useEffect(() => { setSoundOn(!muted); try { localStorage.setItem("ratrace_muted", muted ? "1" : "0"); } catch {} }, [muted]);
@@ -953,7 +1029,8 @@ export default function RatRaceGame() {
     setHabilidades([...p.habilidades]);
     setFinances({ ...p.finances, deudas: deudaInicial(p) });
     setEnergia({ ...p.energia });
-    setCiclo(0); setLog([]); setSeguimientos([]); setOutcome(null); setScreen("game");
+    setCiclo(0); setLog([]); setSeguimientos([]); setOutcome(null);
+    setExperiencia(0); setPertenencias([]); setScreen("game");
     sfx("click");
   };
 
@@ -961,11 +1038,11 @@ export default function RatRaceGame() {
   useEffect(() => {
     if (screen !== "game" || !finances || !profile) return;
     try {
-      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos };
+      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias };
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
       setHaySaved(true);
     } catch {}
-  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos]);
+  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias]);
 
   // Cargar la partida guardada y continuar.
   const continuarPartida = () => {
@@ -978,6 +1055,7 @@ export default function RatRaceGame() {
       if (!Array.isArray(fin.deudas)) fin.deudas = fin.deudas ? [{ id: "credimax_init", bancoId: "credimax", monto: fin.deudas }] : [];
       setFinances(fin);
       setEnergia(data.energia); setCiclo(data.ciclo); setLog(data.log || []); setSeguimientos(data.seguimientos || []);
+      setExperiencia(data.experiencia || 0); setPertenencias(data.pertenencias || []);
       setScreen("game"); sfx("click");
     } catch {}
   };
@@ -1006,6 +1084,12 @@ export default function RatRaceGame() {
       checkWin(nuevo);
       return nuevo;
     });
+
+    // Plusvalía: cada mes tus pertenencias cambian de valor (casas suben, vehículos bajan).
+    setPertenencias(prev => prev.map(p => ({ ...p, valorActual: Math.max(0, Math.round(p.valorActual * (1 + p.plusvalia * factorDe(profile.ciclo)))) })));
+
+    // Experiencia: cada semana trabajada suma. Más experiencia = mejores contratos.
+    setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + 1));
 
     setEnergia(prev => {
       const perdida = profile.ciclo === "diario" ? 15 : profile.ciclo === "semanal" ? 20 : profile.ciclo === "quincenal" ? 25 : 30;
@@ -1075,9 +1159,11 @@ export default function RatRaceGame() {
     const esAccionPositiva = idx !== 1; // index 1 is always "reject/pass"
 
     if (outcomeCategoria && esAccionPositiva) {
-      // Resolve with probability based on skills
-      const resolved = resolveOutcome(evento.id, habilidades);
+      // Resolve with probability based on skills AND experience
+      const resolved = resolveOutcome(evento.id, habilidades, experiencia);
       if (resolved) {
+        // Experiencia por completar un trabajo (más si sale bien)
+        setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + (resolved.tipo === "ganado" ? 3 : resolved.tipo === "perdido" ? 1 : 2)));
         // Apply energy cost immediately
         if (imp.energia) setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, Math.max(0, prev.actual + imp.energia)) }));
         // Apply resolved outcome finances
@@ -1112,6 +1198,8 @@ export default function RatRaceGame() {
       checkWin(nuevo); return nuevo;
     });
     if (imp.energia) setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, Math.max(0, prev.actual + imp.energia)) }));
+    // Experiencia por una chamba realizada (acción positiva)
+    if (esAccionPositiva && evento.tipo === "chamba" && imp.dinero > 0) setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + 2));
 
     // Build immediate result message
     const resultParts = [];
@@ -1140,11 +1228,12 @@ export default function RatRaceGame() {
     if (finances.dinero < skill.costo) { showNotif("Sin dinero suficiente", C.red); return; }
     if (energia.actual < skill.energiaCosto) { showNotif("Sin energía suficiente", C.yellow); return; }
     if (habilidades.includes(skill.id)) { showNotif("Ya tienes esta habilidad", C.yellow); return; }
-    setFinances(prev => ({ ...prev, dinero: prev.dinero - skill.costo }));
+    // Algunas habilidades de negocio forman una empresa que genera ingreso pasivo.
+    setFinances(prev => ({ ...prev, dinero: prev.dinero - skill.costo, activosPasivos: prev.activosPasivos + (skill.ingresoPasivo || 0) }));
     setEnergia(prev => ({ ...prev, actual: Math.max(0, prev.actual - skill.energiaCosto) }));
     setHabilidades(prev => [...prev, skill.id]);
-    addLog(`Aprendiste: ${skill.nombre}`, "success");
-    showNotif(`✓ ${skill.nombre} desbloqueada`, C.green);
+    addLog(skill.ingresoPasivo ? `Formaste un negocio: ${skill.nombre} (+${fmt(skill.ingresoPasivo)}/mes)` : `Aprendiste: ${skill.nombre}`, "success");
+    showNotif(skill.ingresoPasivo ? `🏢 Negocio creado: +${fmt(skill.ingresoPasivo)}/mes` : `✓ ${skill.nombre} desbloqueada`, C.green);
     sfx("success");
   };
 
@@ -1195,6 +1284,49 @@ export default function RatRaceGame() {
       sfx("coin");
       return { ...prev, dinero: prev.dinero + cantidad, deudas: agregarDeuda(prev.deudas || [], cantidad, bancoId) };
     });
+  };
+
+  // ============================================================
+  // PERTENENCIAS (comprar, rentar / dejar de rentar, vender)
+  // ============================================================
+  const comprarBien = (bien) => {
+    if (finances.dinero < bien.costo) { showNotif("Sin efectivo suficiente", C.red); return; }
+    const nuevo = { id: `${bien.id}_${Date.now()}`, baseId: bien.id, tipo: bien.tipo, nombre: bien.nombre, emoji: bien.emoji,
+      valorCompra: bien.costo, valorActual: bien.costo, plusvalia: bien.plusvalia, rentaBase: bien.renta, rentando: false, rentaAplicada: 0 };
+    setFinances(prev => ({ ...prev, dinero: prev.dinero - bien.costo }));
+    setPertenencias(prev => [...prev, nuevo]);
+    addLog(`Compraste ${bien.nombre} por ${fmt(bien.costo)}`, "success");
+    showNotif(`${bien.emoji} ${bien.nombre} adquirido`, C.green);
+    sfx("coin");
+  };
+
+  const rentarBien = (id) => {
+    const p = pertenencias.find(x => x.id === id);
+    if (!p) return;
+    if (p.rentando) {
+      setFinances(f => ({ ...f, activosPasivos: Math.max(0, f.activosPasivos - (p.rentaAplicada || 0)) }));
+      setPertenencias(prev => prev.map(x => x.id === id ? { ...x, rentando: false, rentaAplicada: 0 } : x));
+      addLog(`Dejaste de rentar ${p.nombre}`, "info");
+      showNotif("Dejaste de rentar", C.blue);
+    } else {
+      const renta = rentaEfectiva(p, habilidades);
+      setFinances(f => { const nf = { ...f, activosPasivos: f.activosPasivos + renta }; checkWin(nf); return nf; });
+      setPertenencias(prev => prev.map(x => x.id === id ? { ...x, rentando: true, rentaAplicada: renta } : x));
+      addLog(`Rentas ${p.nombre}: +${fmt(renta)}/mes`, "success");
+      showNotif(`+${fmt(renta)}/mes por renta`, C.green);
+      sfx("coin");
+    }
+  };
+
+  const venderBien = (id) => {
+    const p = pertenencias.find(x => x.id === id);
+    if (!p) return;
+    setFinances(f => ({ ...f, dinero: f.dinero + p.valorActual, activosPasivos: Math.max(0, f.activosPasivos - (p.rentando ? (p.rentaAplicada || 0) : 0)) }));
+    setPertenencias(prev => prev.filter(x => x.id !== id));
+    const ganancia = p.valorActual - p.valorCompra;
+    addLog(`Vendiste ${p.nombre} por ${fmt(p.valorActual)} (${ganancia >= 0 ? "+" : ""}${fmt(ganancia)})`, ganancia >= 0 ? "success" : "danger");
+    showNotif(`Vendido por ${fmt(p.valorActual)}`, ganancia >= 0 ? C.green : C.yellow);
+    sfx("pay");
   };
 
   // Consejero: da un consejo contextual al pulsar el botón del mentor.
@@ -1365,6 +1497,16 @@ export default function RatRaceGame() {
             </div>
           </div>
         </div>
+        {/* Barra de experiencia (nivel 1 a 10) */}
+        <div style={{ marginTop: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.textSecondary, marginBottom: 3 }}>
+            <span>🎓 Experiencia · Nivel {expNivel(experiencia)}/10</span>
+            <span style={{ color: C.yellow }}>+{expBonusProb(experiencia)}% éxito · pagos ×{expBonusPago(experiencia).toFixed(2)}</span>
+          </div>
+          <div style={{ background: C.border, borderRadius: 99, height: 6, overflow: "hidden" }}>
+            <div style={{ width: `${Math.round(expProgreso(experiencia) * 100)}%`, background: `linear-gradient(90deg, ${C.orange}, ${C.yellow})`, height: "100%", borderRadius: 99, transition: "width 0.5s ease" }} />
+          </div>
+        </div>
       </div>
 
       <div style={{ padding: 14 }}>
@@ -1383,13 +1525,13 @@ export default function RatRaceGame() {
 
         {/* Tabs */}
         <div style={{ display: "flex", background: C.surface, borderRadius: 12, padding: 4, marginBottom: 14, gap: 2 }}>
-          {[["balance", "💰", "Balance"], ["deudas", "💳", "Deudas"], ["habilidades", "⚡", "Skills"], ["log", "📋", "Log"]].map(([tab, icon, label]) => (
+          {[["balance", "💰", "Balance"], ["deudas", "💳", "Deudas"], ["pertenencias", "🏠", "Bienes"], ["habilidades", "⚡", "Skills"], ["log", "📋", "Log"]].map(([tab, icon, label]) => (
             <button key={tab} onClick={() => { setActiveTab(tab); sfx("click"); }} style={{
               flex: 1, background: activeTab === tab ? C.card : "none", border: activeTab === tab ? `1px solid ${C.border}` : "1px solid transparent",
-              color: activeTab === tab ? C.textPrimary : C.textSecondary, padding: "8px 4px", borderRadius: 8,
-              fontSize: 11, fontWeight: 600, cursor: "pointer", position: "relative"
+              color: activeTab === tab ? C.textPrimary : C.textSecondary, padding: "8px 2px", borderRadius: 8,
+              fontSize: 10, fontWeight: 600, cursor: "pointer", position: "relative", whiteSpace: "nowrap"
             }}>
-              {icon} {label}
+              <span style={{ fontSize: 13 }}>{icon}</span><br />{label}
               {tab === "deudas" && totalDeuda(finances) > 0 && (
                 <span style={{ position: "absolute", top: 2, right: 4, width: 7, height: 7, borderRadius: 99, background: C.red }} />
               )}
@@ -1509,6 +1651,68 @@ export default function RatRaceGame() {
 
             <div style={{ background: `${C.purple}11`, border: `1px solid ${C.purple}33`, borderRadius: 10, padding: "10px 14px" }}>
               <p style={{ color: "#C4BBFF", fontSize: 11, margin: 0, lineHeight: 1.6 }}>💡 Cada mes se cobra el interés y un pago mínimo automático (5% del saldo). En bancos caros el interés supera el mínimo y la deuda crece. <strong>Liquida o abona</strong> para romper el ciclo.</p>
+            </div>
+          </div>
+        )}
+
+        {/* PERTENENCIAS TAB */}
+        {activeTab === "pertenencias" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, animation: "rr-fadein 0.3s ease" }}>
+            {/* Tus pertenencias */}
+            <div style={{ fontSize: 11, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>🏠 Tus pertenencias</div>
+            {pertenencias.length === 0 ? (
+              <div style={{ background: C.surface, border: `1px dashed ${C.border}`, borderRadius: 12, padding: "14px", textAlign: "center" }}>
+                <p style={{ color: C.textMuted, fontSize: 12, margin: 0 }}>Aún no tienes bienes. Compra vehículos, casas o negocios abajo: ganan plusvalía y puedes rentarlos para generar ingreso pasivo.</p>
+              </div>
+            ) : (
+              pertenencias.map(p => {
+                const ganancia = p.valorActual - p.valorCompra;
+                const rentaPot = rentaEfectiva(p, habilidades);
+                return (
+                  <div key={p.id} style={{ background: C.card, borderRadius: 12, padding: "13px 16px", border: `1px solid ${p.rentando ? C.green + "66" : C.border}` }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                      <div>
+                        <span style={{ color: C.textPrimary, fontWeight: 700, fontSize: 14 }}>{p.emoji} {p.nombre}</span>
+                        <div style={{ fontSize: 11, color: C.textSecondary }}>Valor actual: <strong style={{ color: C.textPrimary }}>{fmt(p.valorActual)}</strong> <span style={{ color: ganancia >= 0 ? C.green : C.red }}>({ganancia >= 0 ? "+" : ""}{fmt(ganancia)})</span></div>
+                        <div style={{ fontSize: 11, color: p.rentando ? C.green : C.textMuted }}>{p.rentando ? `🟢 Rentando: +${fmt(p.rentaAplicada)}/mes` : `Renta potencial: ${fmt(rentaPot)}/mes`}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      <button onClick={() => rentarBien(p.id)} style={btnDeuda(true, p.rentando ? C.surface : `${C.green}22`, p.rentando ? C.textSecondary : C.green)}>{p.rentando ? "Dejar de rentar" : "Rentar"}</button>
+                      <button onClick={() => venderBien(p.id)} style={btnDeuda(true, `${C.yellow}22`, C.yellow)}>Vender {fmt(p.valorActual)}</button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+
+            {/* Mercado de bienes */}
+            <div style={{ fontSize: 11, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>🏪 Mercado</div>
+            {MERCADO_BIENES.map(b => {
+              const puede = finances.dinero >= b.costo;
+              const rentaPot = rentaEfectiva(b, habilidades);
+              const tipoLabel = { vehiculo: "🚗 Vehículo", casa: "🏠 Inmueble", negocio: "🏢 Negocio" }[b.tipo];
+              const plus = b.plusvalia >= 0 ? `+${(b.plusvalia * 100).toFixed(1)}%/mes` : `${(b.plusvalia * 100).toFixed(1)}%/mes`;
+              return (
+                <div key={b.id} style={{ background: C.surface, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.border}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                    <span style={{ color: C.textPrimary, fontWeight: 700, fontSize: 13 }}>{b.emoji} {b.nombre}</span>
+                    <span style={{ fontSize: 10, color: C.textMuted }}>{tipoLabel}</span>
+                  </div>
+                  <p style={{ color: C.textMuted, fontSize: 11, margin: "0 0 6px" }}>{b.desc}</p>
+                  <div style={{ display: "flex", gap: 10, fontSize: 11, marginBottom: 8, flexWrap: "wrap" }}>
+                    <span style={{ color: C.textSecondary }}>💵 {fmt(b.costo)}</span>
+                    <span style={{ color: b.plusvalia >= 0 ? C.green : C.red }}>📈 {plus}</span>
+                    <span style={{ color: C.purple }}>🔁 renta {fmt(rentaPot)}/mes</span>
+                  </div>
+                  <button disabled={!puede} onClick={() => comprarBien(b)} style={{ width: "100%", background: puede ? C.purple : C.border, color: puede ? "#fff" : C.textMuted, border: "none", borderRadius: 10, padding: "9px", fontSize: 12, fontWeight: 700, cursor: puede ? "pointer" : "not-allowed" }}>
+                    {puede ? `Comprar ${fmt(b.costo)}` : "Sin efectivo suficiente"}
+                  </button>
+                </div>
+              );
+            })}
+            <div style={{ background: `${C.purple}11`, border: `1px solid ${C.purple}33`, borderRadius: 10, padding: "10px 14px" }}>
+              <p style={{ color: "#C4BBFF", fontSize: 11, margin: 0, lineHeight: 1.6 }}>💡 Las <strong>casas</strong> ganan plusvalía; los <strong>vehículos</strong> se deprecian pero rentan bien. Tus habilidades (mecánica, bienes raíces, agencia…) aumentan la renta. Elige: <strong>rentar</strong> para ingreso pasivo o <strong>vender</strong> para efectivo.</p>
             </div>
           </div>
         )}

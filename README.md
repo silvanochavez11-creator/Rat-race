@@ -27,8 +27,15 @@ npm run preview  # sirve la versión de producción para probarla
 
 - **4 perfiles** para empezar: Estudiante, Freelancer, Empleado y Doctor/Profesionista.
   Cada uno con distinto dinero, deudas, habilidades y dificultad.
-- **Árbol de habilidades** (Oficios, Digital, Ventas, Finanzas): aprende skills
-  que desbloquean mejores oportunidades y suben tus probabilidades de éxito.
+- **Árbol de habilidades** de varios nichos (Oficios, Digital, Ventas, Finanzas,
+  🧱 Construcción y 🏢 Negocios): aprende skills que desbloquean mejores
+  oportunidades y suben tus probabilidades. Algunas habilidades de negocio
+  (agencia de marketing, escalar) **forman una empresa que genera ingreso pasivo**.
+- **Experiencia (nivel 1 a 10)**: sube con las semanas trabajadas y los trabajos
+  hechos. A mayor nivel, **más probabilidad de éxito y mejores pagos** en contratos.
+- **Pertenencias 🏠🚗**: compra vehículos, casas y negocios. Tienen **plusvalía**
+  (las casas suben de valor, los vehículos se deprecian) y eliges si los **rentas**
+  (ingreso pasivo) o los **vendes** (efectivo). Tus habilidades aumentan la renta.
 - **Sistema de energía**: cada ciclo te cansa; descansa para no quedarte sin energía.
 - **Eventos**: chambas, oportunidades, inversiones, gastos imprevistos y hasta
   crisis económicas ("cisnes negros").
