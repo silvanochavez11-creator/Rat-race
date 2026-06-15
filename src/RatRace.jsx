@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+
 // ============================================================
 // DESIGN TOKENS
 // ============================================================
@@ -16,7 +17,8 @@ const C = {
   yellow: "#FFD166",
   textPrimary: "#F0F4FF",
   textSecondary: "#7A8BA8",
-  textMuted: "#3D5068",};
+  textMuted: "#3D5068", };
+
 // ============================================================
 // SKILL TREE DATA
 // ============================================================
@@ -56,7 +58,8 @@ const SKILL_TREE = {
       { id: "inversion_basica", nombre: "Inversión básica", costo: 2500, energiaCosto: 20, descripcion: "CETES, fondos y bolsa de valores.", requiere: "presupuesto" },
       { id: "bienes_raices", nombre: "Bienes raíces", costo: 6000, energiaCosto: 30, descripcion: "Inversión en propiedades para rentar.", requiere: "inversion_basica" },
     ]
-  }};
+  } };
+
 // ============================================================
 // PROFILES
 // ============================================================
@@ -96,7 +99,8 @@ const PROFILES = [
     finances: { dinero: 20000, ingresoMensual: 45000, gastosMensuales: 38000, deudas: 180000, activosPasivos: 0 },
     energia: { actual: 65, max: 100 },
     ciclo: "mensual", dificultad: "Fácil", color: C.green
-  }];
+  } ];
+
 // ============================================================
 // EVENTS
 // ============================================================
@@ -118,13 +122,15 @@ const EVENTOS = [
   { id: "e15", tipo: "oportunidad", titulo: "Propiedad en venta", descripcion: "Una propiedad barata está disponible. Podrías rentarla y generar flujo.", opciones: ["Comprar y rentar", "Pasar", "Negociar precio"], impacto: [{ dinero: -30000, activosMes: 3500, energia: -10 }, { dinero: 0, energia: 0 }, { dinero: -25000, activosMes: 3500, energia: -15 }], emoji: "🏠", requiereHabilidad: "bienes_raices" },
   { id: "e16", tipo: "chamba", titulo: "Plomería de emergencia", descripcion: "Un vecino tiene una fuga de agua. Necesita ayuda urgente.", opciones: ["Ir ahora $500", "No puedes", "Cobrar urgencia $900"], impacto: [{ dinero: 500, energia: -15 }, { dinero: 0, energia: 0 }, { dinero: 900, energia: -20 }], emoji: "🚿", requiereHabilidad: "plomeria" },
   { id: "e17", tipo: "descanso", titulo: "Fin de semana libre", descripcion: "No hay urgencias. Puedes descansar o aprovechar para estudiar.", opciones: ["Descansar (recuperar energía)", "Estudiar una habilidad", "Buscar chamba extra"], impacto: [{ dinero: 0, energia: 40 }, { dinero: 0, energia: -10 }, { dinero: 1000, energia: -20 }], emoji: "🌴", requiereHabilidad: null },
-  { id: "e18", tipo: "chamba", titulo: "Página web para negocio", descripcion: "Una empresa necesita una landing page sencilla.", opciones: ["Cobrar $6,000", "Rechazar", "Cobrar $10,000 con mantenimiento"], impacto: [{ dinero: 6000, energia: -30 }, { dinero: 0, energia: 0 }, { dinero: 0, ingreso: 2000, energia: -35 }], emoji: "🌐", requiereHabilidad: "programacion" },];
+  { id: "e18", tipo: "chamba", titulo: "Página web para negocio", descripcion: "Una empresa necesita una landing page sencilla.", opciones: ["Cobrar $6,000", "Rechazar", "Cobrar $10,000 con mantenimiento"], impacto: [{ dinero: 6000, energia: -30 }, { dinero: 0, energia: 0 }, { dinero: 0, ingreso: 2000, energia: -35 }], emoji: "🌐", requiereHabilidad: "programacion" }, ];
+
 // ============================================================
 // OBJECTION / NEGOTIATION SYSTEM
 // ============================================================
 // When a sales/client event fires, instead of generic options,
 // the player sees real objections to handle. Their choice +
 // skill level determines the outcome.
+
 const OBJECIONES = [
   {
     id: "o1",
@@ -203,18 +209,23 @@ const OBJECIONES = [
       { texto: '"Cuéntame qué has intentado antes. Quiero entender tu situación específica."', calidad: "excelente", respuesta: "Les demostraste que no vendes lo mismo para todos. Eso ya te diferenció. La propuesta que hiciste después fue perfecta porque la construiste con su propio diagnóstico.", bonusSkill: "negociacion" },
     ],
     leccion: "💡 La diferenciación no está en tus servicios, está en cómo entiendes al cliente. Pregunta antes de proponer.",
-  },];
+  }, ];
+
 // Get a relevant objection for the current event context
 const getObjecion = (contexto, habilidades) => {
   const disponibles = OBJECIONES.filter(o => o.contextos.includes(contexto));
-  return disponibles[Math.floor(Math.random() * disponibles.length)];};
+  return disponibles[Math.floor(Math.random() * disponibles.length)]; };
+
 // Calculate option quality score based on skills
 const getOpcionScore = (opcion, habilidades) => {
   const baseScore = { mala: 0, buena: 1, excelente: 2 }[opcion.calidad] || 0;
   const skillBonus = opcion.bonusSkill && habilidades.includes(opcion.bonusSkill) ? 1 : 0;
-  return baseScore + skillBonus;};
+  return baseScore + skillBonus; };
+
+
 // Each negotiation/sales event has outcomes with probability
 // modified by relevant skills. Results include narrative text.
+
 const OUTCOMES = {
   // Client negotiation outcomes
   cliente_potencial: {
@@ -382,7 +393,8 @@ const OUTCOMES = {
         impacto: { dinero: -500, activosMes: 0 },
       },
     ]
-  }};
+  } };
+
 // Map event IDs to outcome categories
 const EVENTO_OUTCOME_MAP = {
   e3: "cliente_potencial",
@@ -395,15 +407,18 @@ const EVENTO_OUTCOME_MAP = {
   e18: "contrato_grande",
   e7: "inversion",
   e8: "inversion",
-  e15: "inversion",};
+  e15: "inversion", };
+
 // Calculate success probability based on skills
 const calcProbabilidad = (outcomeConfig, habilidades, resultado) => {
   let prob = resultado.probabilidadBase;
-  if (outcomeConfig.habilidadBonus) {Object.entries(outcomeConfig.habilidadBonus).forEach(([hId, bonus]) => {
+  if (outcomeConfig.habilidadBonus) {
+    Object.entries(outcomeConfig.habilidadBonus).forEach(([hId, bonus]) => {
       if (habilidades.includes(hId)) prob += bonus;
     });
   }
-  return Math.min(prob, 95);};
+  return Math.min(prob, 95); };
+
 const resolveOutcome = (eventoId, habilidades) => {
   const categoria = EVENTO_OUTCOME_MAP[eventoId];
   if (!categoria) return null;
@@ -420,7 +435,8 @@ const resolveOutcome = (eventoId, habilidades) => {
       return { ...resultado, narrativa, probabilidad: Math.round((totales[i] / suma) * 100) };
     }
   }
-  return { ...config.resultados[config.resultados.length - 1], narrativa: config.resultados[config.resultados.length - 1].narrativas[0] };};
+  return { ...config.resultados[config.resultados.length - 1], narrativa: config.resultados[config.resultados.length - 1].narrativas[0] }; };
+
 const MENTOR_TIPS = {
   deudaAlta: "💡 Tu deuda supera el doble de tu ingreso. Prioriza pagarla — los intereses te están comiendo vivo.",
   gastosMayores: "⚠️ Gastas más de lo que ganas. Así nunca sales del rat race. Reduce gastos o aumenta ingresos.",
@@ -428,18 +444,22 @@ const MENTOR_TIPS = {
   energiaBaja: "😴 Tu energía está muy baja. Si no descansas, bajarás tu rendimiento y podrías enfermarte.",
   buenaDecision: "✅ Excelente decisión. Así se construye la libertad financiera, paso a paso.",
   invertir: "📈 Los activos trabajan por ti mientras duermes. Sigue acumulando ingresos pasivos.",
-  sinHabilidad: "🔒 No tienes la habilidad para esta oportunidad. Invierte en aprender — se paga solo.",};
+  sinHabilidad: "🔒 No tienes la habilidad para esta oportunidad. Invierte en aprender — se paga solo.", };
+
 // ============================================================
 // HELPERS
 // ============================================================
 const fmt = (n) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n);
 const getCicloLabel = (c) => ({ diario: "Día", semanal: "Semana", quincenal: "Quincena", mensual: "Mes" }[c]);
+
 const getAllSkills = () => Object.values(SKILL_TREE).flatMap(rama => rama.skills);
 const getSkillById = (id) => getAllSkills().find(s => s.id === id);
 const getRamaBySkillId = (id) => Object.entries(SKILL_TREE).find(([, rama]) => rama.skills.some(s => s.id === id));
+
 // ============================================================
 // UI COMPONENTS
 // ============================================================
+
 function EnergyBar({ actual, max }) {
   const pct = (actual / max) * 100;
   const color = pct > 60 ? C.green : pct > 30 ? C.yellow : C.red;
@@ -453,7 +473,8 @@ function EnergyBar({ actual, max }) {
         <div style={{ width: `${pct}%`, background: color, height: "100%", borderRadius: 99, transition: "width 0.4s ease" }} />
       </div>
     </div>
-  );}
+  ); }
+
 function Avatar({ position, profileEmoji, energia }) {
   const positions = { casa: "8%", trabajo: "50%", tienda: "84%", durmiendo: "8%" };
   const tired = energia < 30;
@@ -474,7 +495,8 @@ function Avatar({ position, profileEmoji, energia }) {
         ))}
       </div>
     </div>
-  );}
+  ); }
+
 function EventModal({ evento, onChoice, habilidades, energia }) {
   const tieneHabilidad = !evento.requiereHabilidad || habilidades.includes(evento.requiereHabilidad);
   const skillRequerida = evento.requiereHabilidad ? getSkillById(evento.requiereHabilidad) : null;
@@ -520,26 +542,33 @@ function EventModal({ evento, onChoice, habilidades, energia }) {
         )}
       </div>
     </div>
-  );}
+  ); }
+
 function MentorTip({ tip, onClose }) {
   return (
     <div style={{ background: `linear-gradient(135deg, #1A1640, #241C5A)`, border: `1px solid ${C.purple}44`, borderRadius: 12, padding: 14, marginBottom: 14, position: "relative" }}>
       <p style={{ color: "#C4BBFF", fontSize: 13, lineHeight: 1.6, margin: 0, paddingRight: 20 }}>{tip}</p>
       <button onClick={onClose} style={{ position: "absolute", top: 10, right: 12, background: "none", border: "none", color: C.purple, cursor: "pointer", fontSize: 14 }}>✕</button>
     </div>
-  );}
+  ); }
+
 function ObjecionModal({ objecion, habilidades, onResult }) {
   const [elegida, setElegida] = useState(null);
   const [mostrarLeccion, setMostrarLeccion] = useState(false);
+
   const calidades = { mala: { color: C.red, label: "❌ Respuesta débil" }, buena: { color: C.yellow, label: "✓ Buena respuesta" }, excelente: { color: C.green, label: "⭐ Respuesta experta" } };
+
   const elegir = (opcion) => {
     setElegida(opcion);
     setMostrarLeccion(true);
   };
+
   const score = elegida ? getOpcionScore(elegida, habilidades) : 0;
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.93)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 120, padding: 16, overflowY: "auto" }}>
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, maxWidth: 390, width: "100%", overflow: "hidden", margin: "auto" }}>
+
         {!mostrarLeccion ? (
           <>
             {/* Objection header */}
@@ -550,6 +579,7 @@ function ObjecionModal({ objecion, habilidades, onResult }) {
                 <p style={{ color: C.textPrimary, fontSize: 15, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{objecion.objecion}</p>
               </div>
             </div>
+
             {/* Options */}
             <div style={{ padding: "18px 20px" }}>
               <p style={{ color: C.textSecondary, fontSize: 12, marginBottom: 14 }}>¿Cómo respondes?</p>
@@ -580,7 +610,8 @@ function ObjecionModal({ objecion, habilidades, onResult }) {
               <div style={{ fontSize: 36, marginBottom: 8 }}>
                 {elegida.calidad === "excelente" ? "⭐" : elegida.calidad === "buena" ? "✓" : "💡"}
               </div>
-              <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, color: calidades[elegida.calidad]?.color, marginBottom: 6 }}>{calidades[elegida.calidad]?.label}
+              <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, color: calidades[elegida.calidad]?.color, marginBottom: 6 }}>
+                {calidades[elegida.calidad]?.label}
               </div>
               {elegida.bonusSkill && habilidades.includes(elegida.bonusSkill) && (
                 <div style={{ fontSize: 11, color: C.green, background: `${C.green}22`, display: "inline-block", padding: "3px 12px", borderRadius: 99, marginTop: 4 }}>
@@ -588,15 +619,18 @@ function ObjecionModal({ objecion, habilidades, onResult }) {
                 </div>
               )}
             </div>
+
             <div style={{ padding: "18px 22px" }}>
               {/* What happened */}
               <div style={{ background: C.surface, borderRadius: 12, padding: "13px 15px", marginBottom: 14, borderLeft: `3px solid ${calidades[elegida.calidad]?.color}` }}>
                 <p style={{ color: C.textSecondary, fontSize: 13, lineHeight: 1.7, margin: 0, fontStyle: "italic" }}>"{elegida.respuesta}"</p>
               </div>
+
               {/* Lesson */}
               <div style={{ background: `${C.purple}11`, border: `1px solid ${C.purple}33`, borderRadius: 10, padding: "11px 14px", marginBottom: 16 }}>
                 <p style={{ color: "#C4BBFF", fontSize: 12, lineHeight: 1.6, margin: 0 }}>{objecion.leccion}</p>
               </div>
+
               {/* Skill unlock hint */}
               {elegida.bonusSkill && !habilidades.includes(elegida.bonusSkill) && (
                 <div style={{ background: `${C.yellow}11`, border: `1px solid ${C.yellow}33`, borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
@@ -605,6 +639,7 @@ function ObjecionModal({ objecion, habilidades, onResult }) {
                   </p>
                 </div>
               )}
+
               <button onClick={() => onResult(score)} style={{
                 background: elegida.calidad === "excelente" ? C.green : elegida.calidad === "buena" ? C.yellow : C.purple,
                 color: elegida.calidad === "buena" ? "#000" : elegida.calidad === "excelente" ? "#000" : "#fff",
@@ -618,7 +653,8 @@ function ObjecionModal({ objecion, habilidades, onResult }) {
         )}
       </div>
     </div>
-  );}
+  ); }
+
 function OutcomeModal({ outcome, onClose }) {
   const tipoConfig = {
     ganado:     { color: C.green,  bg: "linear-gradient(135deg, #002A1F, #003D2A)", border: C.green },
@@ -628,6 +664,7 @@ function OutcomeModal({ outcome, onClose }) {
     neutral:    { color: C.blue,   bg: "linear-gradient(135deg, #001A2A, #00243D)", border: C.blue },
   };
   const cfg = tipoConfig[outcome.tipo] || tipoConfig.neutral;
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150, padding: 16 }}>
       <div style={{ background: C.card, border: `1px solid ${cfg.border}55`, borderRadius: 22, maxWidth: 380, width: "100%", overflow: "hidden" }}>
@@ -639,6 +676,7 @@ function OutcomeModal({ outcome, onClose }) {
           </div>
           <h3 style={{ color: C.textPrimary, fontSize: 20, fontWeight: 800, margin: 0 }}>{outcome.titulo}</h3>
         </div>
+
         {/* Narrative */}
         <div style={{ padding: "18px 22px" }}>
           <div style={{ background: C.surface, borderRadius: 12, padding: "14px 16px", marginBottom: 16, borderLeft: `3px solid ${cfg.color}` }}>
@@ -646,6 +684,7 @@ function OutcomeModal({ outcome, onClose }) {
               "{outcome.narrativa}"
             </p>
           </div>
+
           {/* Impact */}
           {(outcome.impacto?.dinero !== 0 || outcome.impacto?.ingreso || outcome.impacto?.activosMes) && (
             <div style={{ background: C.surface, borderRadius: 10, padding: "10px 14px", marginBottom: 16 }}>
@@ -653,10 +692,13 @@ function OutcomeModal({ outcome, onClose }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {outcome.impacto?.dinero > 0 && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: C.textSecondary }}>Pago recibido</span><span style={{ color: C.green, fontWeight: 700 }}>+{new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(outcome.impacto.dinero)}</span></div>}
                 {outcome.impacto?.dinero < 0 && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: C.textSecondary }}>Pérdida</span><span style={{ color: C.red, fontWeight: 700 }}>{new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(outcome.impacto.dinero)}</span></div>}
-                {outcome.impacto?.ingreso > 0 && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: C.textSecondary }}>Ingreso mensual</span><span style={{ color: C.green, fontWeight: 700 }}>+{new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(outcome.impacto.ingreso)}/mes</span></div>}{outcome.impacto?.activosMes > 0 && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: C.textSecondary }}>Ingreso pasivo</span><span style={{ color: C.purple, fontWeight: 700 }}>+{new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(outcome.impacto.activosMes)}/mes</span></div>}{outcome.impacto?.seguimiento && <div style={{ fontSize: 12, color: C.yellow, marginTop: 4 }}>📋 Agendado para seguimiento — puede convertirse en cliente</div>}
+                {outcome.impacto?.ingreso > 0 && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: C.textSecondary }}>Ingreso mensual</span><span style={{ color: C.green, fontWeight: 700 }}>+{new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(outcome.impacto.ingreso)}/mes</span></div>}
+                {outcome.impacto?.activosMes > 0 && <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: C.textSecondary }}>Ingreso pasivo</span><span style={{ color: C.purple, fontWeight: 700 }}>+{new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(outcome.impacto.activosMes)}/mes</span></div>}
+                {outcome.impacto?.seguimiento && <div style={{ fontSize: 12, color: C.yellow, marginTop: 4 }}>📋 Agendado para seguimiento — puede convertirse en cliente</div>}
               </div>
             </div>
           )}
+
           {/* Skill tip if lost */}
           {(outcome.tipo === "perdido" || outcome.tipo === "parcial") && (
             <div style={{ background: `${C.purple}11`, border: `1px solid ${C.purple}33`, borderRadius: 10, padding: "10px 14px", marginBottom: 16 }}>
@@ -665,13 +707,15 @@ function OutcomeModal({ outcome, onClose }) {
               </p>
             </div>
           )}
+
           <button onClick={onClose} style={{ background: cfg.color, color: "#000", border: "none", borderRadius: 14, padding: "13px", fontSize: 14, fontWeight: 800, cursor: "pointer", width: "100%" }}>
             {outcome.tipo === "ganado" ? "¡A seguir creciendo! →" : outcome.tipo === "seguimiento" ? "Hacer seguimiento →" : "Continuar →"}
           </button>
         </div>
       </div>
     </div>
-  );}
+  ); }
+
 function SkillNode({ skill, comprada, puedePagar, puedeCursar, ramaColor, onComprar, energiaActual }) {
   const suficienteEnergia = energiaActual >= skill.energiaCosto;
   const disponible = !comprada && puedePagar && puedeCursar && suficienteEnergia;
@@ -709,7 +753,8 @@ function SkillNode({ skill, comprada, puedePagar, puedeCursar, ramaColor, onComp
         )}
       </div>
     </div>
-  );}
+  ); }
+
 // ============================================================
 // MAIN GAME
 // ============================================================
@@ -730,20 +775,25 @@ export default function RatRaceGame() {
   const [notification, setNotification] = useState(null);
   const [outcome, setOutcome] = useState(null);
   const [seguimientos, setSeguimientos] = useState([]);
+
   const addLog = (msg, tipo = "info") => setLog(prev => [{ msg, tipo, ciclo }, ...prev].slice(0, 25));
+
   const showNotif = (msg, color = C.purple) => {
     setNotification({ msg, color });
     setTimeout(() => setNotification(null), 2500);
   };
+
   const checkWin = useCallback((fin) => {
     if (fin.activosPasivos >= fin.gastosMensuales) setScreen("win");
   }, []);
+
   const checkMentor = useCallback((fin, eng) => {
     if (eng.actual < 25) { setMentorTip(MENTOR_TIPS.energiaBaja); return; }
     if (fin.deudas > fin.ingresoMensual * 2) { setMentorTip(MENTOR_TIPS.deudaAlta); return; }
     if (fin.gastosMensuales > fin.ingresoMensual + fin.activosPasivos && fin.ingresoMensual > 0) { setMentorTip(MENTOR_TIPS.gastosMayores); return; }
     if (fin.dinero < fin.gastosMensuales * 0.5) { setMentorTip(MENTOR_TIPS.sinAhorros); return; }
   }, []);
+
   const startGame = (p) => {
     setProfile(p); setStats({ ...p.stats });
     setHabilidades([...p.habilidades]);
@@ -751,8 +801,10 @@ export default function RatRaceGame() {
     setEnergia({ ...p.energia });
     setCiclo(0); setLog([]); setSeguimientos([]); setOutcome(null); setScreen("game");
   };
+
   const avanzarCiclo = () => {
     if (energia.actual <= 0) { showNotif("Sin energía — debes descansar", C.red); return; }
+
     setFinances(prev => {
       const nuevo = { ...prev };
       const factor = profile.ciclo === "diario" ? 1/30 : profile.ciclo === "semanal" ? 1/4 : profile.ciclo === "quincenal" ? 1/2 : 1;
@@ -765,21 +817,26 @@ export default function RatRaceGame() {
       checkWin(nuevo);
       return nuevo;
     });
+
     setEnergia(prev => {
       const perdida = profile.ciclo === "diario" ? 15 : profile.ciclo === "semanal" ? 20 : profile.ciclo === "quincenal" ? 25 : 30;
       const nueva = Math.max(0, prev.actual - perdida);
       return { ...prev, actual: nueva };
     });
+
     setCiclo(c => c + 1);
+
     const positions = ["casa", "trabajo", "tienda", "casa"];
     let i = 0;
     const iv = setInterval(() => { setAvatarPos(positions[i % positions.length]); i++; if (i >= positions.length) clearInterval(iv); }, 500);
+
     // Always trigger an event — weighted by skills and context
     const elegirEvento = (fin, eng) => {
       // Categorize events by type for weighted selection
       const conHabilidad = EVENTOS.filter(e => e.requiereHabilidad && habilidades.includes(e.requiereHabilidad));
       const sinHabilidad = EVENTOS.filter(e => !e.requiereHabilidad);
       const sinSkillPeroVisible = EVENTOS.filter(e => e.requiereHabilidad && !habilidades.includes(e.requiereHabilidad));
+
       // Build weighted pool
       let pool = [];
       // If skills unlocked → those events appear more (3x weight)
@@ -790,6 +847,7 @@ export default function RatRaceGame() {
       if (Math.random() < 0.2) {
         sinSkillPeroVisible.forEach(e => pool.push(e));
       }
+
       // Context overrides: low money → more gasto/chamba, low energy → descanso
       if (fin.dinero < fin.gastosMensuales * 0.3) {
         const urgentes = EVENTOS.filter(e => e.tipo === "chamba" && (!e.requiereHabilidad || habilidades.includes(e.requiereHabilidad)));
@@ -799,8 +857,10 @@ export default function RatRaceGame() {
         const descansos = EVENTOS.filter(e => e.tipo === "descanso");
         descansos.forEach(e => { pool.push(e); pool.push(e); pool.push(e); });
       }
+
       return pool[Math.floor(Math.random() * pool.length)];
     };
+
     setTimeout(() => {
       setFinances(fin => {
         setEnergia(eng => {
@@ -812,14 +872,18 @@ export default function RatRaceGame() {
         return fin;
       });
     }, 900);
+
     addLog(`${getCicloLabel(profile.ciclo)} ${ciclo + 1} avanzado`, "success");
   };
+
   const handleEventChoice = (idx) => {
     const imp = evento.impacto[idx];
     const opcion = evento.opciones[idx];
+
     // Check if this event has an outcome resolution
     const outcomeCategoria = EVENTO_OUTCOME_MAP[evento.id];
     const esAccionPositiva = idx !== 1; // index 1 is always "reject/pass"
+
     if (outcomeCategoria && esAccionPositiva) {
       // Resolve with probability based on skills
       const resolved = resolveOutcome(evento.id, habilidades);
@@ -843,6 +907,7 @@ export default function RatRaceGame() {
         return;
       }
     }
+
     // Standard event (no outcome resolution) — show immediate result
     setFinances(prev => {
       const nuevo = { ...prev };
@@ -854,6 +919,7 @@ export default function RatRaceGame() {
       checkWin(nuevo); return nuevo;
     });
     if (imp.energia) setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, Math.max(0, prev.actual + imp.energia)) }));
+
     // Build immediate result message
     const resultParts = [];
     if (imp.dinero > 0) resultParts.push(`+${fmt(imp.dinero)}`);
@@ -865,14 +931,17 @@ export default function RatRaceGame() {
     if (imp.energia > 0) resultParts.push(`+${imp.energia} energía`);
     if (imp.energia < 0) resultParts.push(`${imp.energia} energía`);
     const resultMsg = resultParts.length > 0 ? resultParts.join(" · ") : opcion;
+
     const esPositivo = imp.dinero > 0 || imp.ingreso > 0 || imp.activosMes > 0 || imp.energia > 0;
     const esNegativo = imp.dinero < 0 || imp.ingreso < 0 || imp.deuda > 0;
+
     if (idx === 2) setMentorTip(MENTOR_TIPS.buenaDecision);
     if (imp.activosMes > 0) setMentorTip(MENTOR_TIPS.invertir);
     addLog(`"${evento.titulo}" → ${opcion} (${resultMsg})`, esPositivo ? "success" : esNegativo ? "danger" : "info");
     showNotif(resultMsg, esPositivo ? C.green : esNegativo ? C.red : C.blue);
     setEvento(null);
   };
+
   const aprenderHabilidad = (skill) => {
     if (finances.dinero < skill.costo) { showNotif("Sin dinero suficiente", C.red); return; }
     if (energia.actual < skill.energiaCosto) { showNotif("Sin energía suficiente", C.yellow); return; }
@@ -883,6 +952,7 @@ export default function RatRaceGame() {
     addLog(`Aprendiste: ${skill.nombre}`, "success");
     showNotif(`✓ ${skill.nombre} desbloqueada`, C.green);
   };
+
   const descansar = () => {
     setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, prev.actual + 35) }));
     setCiclo(c => c + 1);
@@ -891,10 +961,13 @@ export default function RatRaceGame() {
     addLog("Descansaste — energía recuperada", "info");
     showNotif("Descansaste ✓", C.blue);
   };
+
   if (!finances && screen === "game") return null;
+
   const flujoMensual = finances ? finances.ingresoMensual + finances.activosPasivos - finances.gastosMensuales : 0;
   const progreso = finances ? Math.min(100, (finances.activosPasivos / Math.max(1, finances.gastosMensuales)) * 100) : 0;
   const rama = SKILL_TREE[activeRama];
+
   // ============================================================
   // INTRO
   // ============================================================
@@ -914,6 +987,7 @@ export default function RatRaceGame() {
       </div>
     </div>
   );
+
   // ============================================================
   // SELECT
   // ============================================================
@@ -960,6 +1034,7 @@ export default function RatRaceGame() {
       </div>
     </div>
   );
+
   // ============================================================
   // WIN
   // ============================================================
@@ -993,17 +1068,20 @@ export default function RatRaceGame() {
       </div>
     </div>
   );
+
   // ============================================================
   // GAME
   // ============================================================
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Inter', -apple-system, sans-serif", maxWidth: 420, margin: "0 auto", paddingBottom: 100 }}>
+
       {/* Notification */}
       {notification && (
         <div style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: notification.color, color: "#fff", padding: "9px 22px", borderRadius: 99, fontSize: 13, fontWeight: 700, zIndex: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", whiteSpace: "nowrap", pointerEvents: "none" }}>
           {notification.msg}
         </div>
       )}
+
       {/* Header */}
       <div style={{ background: C.surface, padding: "14px 18px", borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
@@ -1030,9 +1108,11 @@ export default function RatRaceGame() {
           </div>
         </div>
       </div>
+
       <div style={{ padding: 14 }}>
         <Avatar position={avatarPos} profileEmoji={profile.emoji} energia={energia} />
         {mentorTip && <MentorTip tip={mentorTip} onClose={() => setMentorTip(null)} />}
+
         {/* Tabs */}
         <div style={{ display: "flex", background: C.surface, borderRadius: 12, padding: 4, marginBottom: 14, gap: 2 }}>
           {[["balance", "💰"], ["habilidades", "⚡"], ["log", "📋"]].map(([tab, icon]) => (
@@ -1045,6 +1125,7 @@ export default function RatRaceGame() {
             </button>
           ))}
         </div>
+
         {/* BALANCE TAB */}
         {activeTab === "balance" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1079,10 +1160,12 @@ export default function RatRaceGame() {
             )}
           </div>
         )}
+
         {/* HABILIDADES TAB */}
         {activeTab === "habilidades" && (
           <div>
-            <div style={{ display: "flex", gap: 6, marginBottom: 14, overflowX: "auto", paddingBottom: 4 }}>{Object.entries(SKILL_TREE).map(([key, r]) => (
+            <div style={{ display: "flex", gap: 6, marginBottom: 14, overflowX: "auto", paddingBottom: 4 }}>
+              {Object.entries(SKILL_TREE).map(([key, r]) => (
                 <button key={key} onClick={() => setActiveRama(key)} style={{
                   background: activeRama === key ? `${r.color}22` : C.surface,
                   border: `1px solid ${activeRama === key ? r.color : C.border}`,
@@ -1118,6 +1201,7 @@ export default function RatRaceGame() {
             </div>
           </div>
         )}
+
         {/* LOG TAB */}
         {activeTab === "log" && (
           <div style={{ background: C.card, borderRadius: 12, padding: 14, border: `1px solid ${C.border}` }}>
@@ -1132,6 +1216,7 @@ export default function RatRaceGame() {
           </div>
         )}
       </div>
+
       {/* Bottom Actions */}
       <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 420, background: C.bg, borderTop: `1px solid ${C.border}`, padding: "12px 14px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 8 }}>
@@ -1148,7 +1233,9 @@ export default function RatRaceGame() {
           </button>
         </div>
       </div>
+
       {evento && <EventModal evento={evento} onChoice={handleEventChoice} habilidades={habilidades} energia={energia} />}
       {outcome && <OutcomeModal outcome={outcome} onClose={() => setOutcome(null)} />}
     </div>
-  );}
+  ); }
+
