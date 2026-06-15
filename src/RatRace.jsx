@@ -39,6 +39,8 @@ const SKILL_TREE = {
       { id: "marketing", nombre: "Marketing digital", costo: 2500, energiaCosto: 20, descripcion: "Ads, embudos y generación de leads.", requiere: "redes_sociales" },
       { id: "diseno", nombre: "Diseño básico", costo: 1800, energiaCosto: 15, descripcion: "Canva, logos y materiales visuales.", requiere: null },
       { id: "programacion", nombre: "Programación", costo: 4500, energiaCosto: 35, descripcion: "Desarrollo web y automatizaciones.", requiere: "diseno" },
+      { id: "marca_personal", nombre: "Marca personal en redes", costo: 2400, energiaCosto: 18, descripcion: "Construyes tu marca y atraes clientes recurrentes.", requiere: "redes_sociales", ingresoMensual: 1500 },
+      { id: "analisis_datos", nombre: "Analista de datos", costo: 3200, energiaCosto: 25, descripcion: "Decisiones con datos: mides y optimizas resultados.", requiere: "marketing" },
     ]
   },
   ventas: {
@@ -46,6 +48,8 @@ const SKILL_TREE = {
     skills: [
       { id: "atencion_cliente", nombre: "Atención al cliente", costo: 600, energiaCosto: 10, descripcion: "Comunicación y servicio efectivo.", requiere: null },
       { id: "ventas_basicas", nombre: "Ventas básicas", costo: 1500, energiaCosto: 15, descripcion: "Proceso de venta y manejo de objeciones.", requiere: "atencion_cliente" },
+      { id: "oratoria", nombre: "Comunicación y oratoria", costo: 2000, energiaCosto: 18, descripcion: "Hablas con claridad y persuades en público.", requiere: "atencion_cliente" },
+      { id: "lenguaje_corporal", nombre: "Lenguaje corporal", costo: 2600, energiaCosto: 20, descripcion: "Lees y usas gestos para conectar y cerrar tratos.", requiere: "ventas_basicas" },
       { id: "cierre", nombre: "Cierre de tratos", costo: 3000, energiaCosto: 20, descripcion: "Técnicas avanzadas de cierre.", requiere: "ventas_basicas" },
       { id: "negociacion", nombre: "Negociación", costo: 4000, energiaCosto: 25, descripcion: "Negociar contratos y acuerdos grandes.", requiere: "cierre" },
     ]
@@ -149,7 +153,12 @@ const EVENTOS = [
   { id: "e24", tipo: "chamba", titulo: "Fabricar muebles a medida", descripcion: "Una familia quiere un clóset y una mesa de madera.", opciones: ["Cobrar $3,000", "Rechazar", "Cobrar $5,000 línea premium"], impacto: [{ dinero: 3000, energia: -25 }, { dinero: 0, energia: 0 }, { dinero: 5000, energia: -35 }], emoji: "🪚", requiereHabilidad: "carpinteria" },
   { id: "e25", tipo: "chamba", titulo: "Portón de herrería", descripcion: "Necesitan un portón de metal con protección.", opciones: ["Cobrar $3,500", "Rechazar", "Cobrar $6,000 reforzado"], impacto: [{ dinero: 3500, energia: -30 }, { dinero: 0, energia: 0 }, { dinero: 6000, energia: -40 }], emoji: "🔩", requiereHabilidad: "herreria" },
   { id: "e26", tipo: "oportunidad", titulo: "Dirigir una obra", descripcion: "Te ofrecen dirigir la construcción de una casa completa.", opciones: ["Aceptar la obra", "Rechazar", "Negociar mejores términos"], impacto: [{ dinero: 15000, energia: -40 }, { dinero: 0, energia: 0 }, { dinero: 22000, energia: -50 }], emoji: "🏗️", requiereHabilidad: "maestro_obra" },
-  { id: "e27", tipo: "oportunidad", titulo: "Cuenta grande para tu agencia", descripcion: "Una empresa quiere contratar a tu agencia de marketing por meses.", opciones: ["Presentar propuesta", "Rechazar", "Negociar retainer anual"], impacto: [{ dinero: 8000, ingreso: 3000, energia: -25 }, { dinero: 0, energia: 0 }, { dinero: 12000, ingreso: 5000, energia: -35 }], emoji: "📣", requiereHabilidad: "agencia_marketing" }, ];
+  { id: "e27", tipo: "oportunidad", titulo: "Cuenta grande para tu agencia", descripcion: "Una empresa quiere contratar a tu agencia de marketing por meses.", opciones: ["Presentar propuesta", "Rechazar", "Negociar retainer anual"], impacto: [{ dinero: 8000, ingreso: 3000, energia: -25 }, { dinero: 0, energia: 0 }, { dinero: 12000, ingreso: 5000, energia: -35 }], emoji: "📣", requiereHabilidad: "agencia_marketing" },
+  { id: "e28", tipo: "black_swan", titulo: "Mes sin ventas", descripcion: "Tu negocio no vendió este mes. La nómina y la renta no esperan.", opciones: ["Cubrir gastos $3,000", "Recortar personal (baja tu ingreso)", "Pedir préstamo para aguantar"], impacto: [{ dinero: -3000, energia: -15 }, { dinero: 0, ingreso: -2500, energia: -10 }, { dinero: 5000, deuda: 6000, energia: -10 }], emoji: "📉", requiereHabilidad: null },
+  { id: "e29", tipo: "black_swan", titulo: "Crisis económica del país", descripcion: "La economía nacional se contrae: suben los precios y baja el consumo.", opciones: ["Ajustar tu presupuesto", "Buscar ingreso extra", "Aguantar (suben tus gastos)"], impacto: [{ gastos: 600, energia: -15 }, { dinero: 2000, energia: -25 }, { gastos: 1500, energia: -10 }], emoji: "🏛️", requiereHabilidad: null },
+  { id: "e30", tipo: "black_swan", titulo: "Accidente: atención médica", descripcion: "Tuviste un accidente y necesitas atención médica urgente y de pago.", opciones: ["Hospital privado $7,000", "IMSS $1,500 + reposo", "Ignorar (peligroso)"], impacto: [{ dinero: -7000, energia: -15 }, { dinero: -1500, energia: -35 }, { dinero: 0, energia: -45, ingreso: -2500 }], emoji: "🚑", requiereHabilidad: null },
+  { id: "e31", tipo: "gasto", titulo: "Inflación: suben tus gastos", descripcion: "El costo de la vida subió. Tus compras del mes cuestan más.", opciones: ["Reducir consumo", "Comprar a crédito", "Aguantar (gastos +$1,000/mes)"], impacto: [{ energia: -10 }, { dinero: 0, deuda: 3000, energia: -5 }, { gastos: 1000, energia: -5 }], emoji: "🛒", requiereHabilidad: null },
+  { id: "e32", tipo: "black_swan", titulo: "Subió la renta y los servicios", descripcion: "El casero subió la renta y los servicios aumentaron. Tus gastos fijos crecen.", opciones: ["Negociar con el casero", "Mudarte (gasto único)", "Aceptar el aumento"], impacto: [{ energia: -15 }, { dinero: -4000, energia: -20 }, { gastos: 1200, energia: -5 }], emoji: "🏚️", requiereHabilidad: null }, ];
 
 // ============================================================
 // OBJECTION / NEGOTIATION SYSTEM
@@ -451,12 +460,12 @@ const calcProbabilidad = (outcomeConfig, habilidades, resultado) => {
   }
   return Math.min(prob, 95); };
 
-const resolveOutcome = (eventoId, habilidades, exp = 0) => {
+const resolveOutcome = (eventoId, habilidades, exp = 0, bonusExtra = 0) => {
   const categoria = EVENTO_OUTCOME_MAP[eventoId];
   if (!categoria) return null;
   const config = OUTCOMES[categoria];
-  // La experiencia sube la probabilidad de los resultados buenos.
-  const totales = config.resultados.map(r => calcProbabilidad(config, habilidades, r) + (r.tipo === "ganado" ? expBonusProb(exp) : 0));
+  // La experiencia y la calidad de tu negociación suben la probabilidad de ganar.
+  const totales = config.resultados.map(r => Math.max(1, calcProbabilidad(config, habilidades, r) + (r.tipo === "ganado" ? expBonusProb(exp) + bonusExtra : 0)));
   const suma = totales.reduce((a, b) => a + b, 0);
   // La experiencia también mejora el pago de los contratos ganados.
   const conExp = (resultado, prob) => {
@@ -979,6 +988,8 @@ export default function RatRaceGame() {
   const [prestamoBanco, setPrestamoBanco] = useState("credimax");
   const [experiencia, setExperiencia] = useState(0);
   const [pertenencias, setPertenencias] = useState([]);
+  const [objecion, setObjecion] = useState(null);   // diálogo de negociación activo
+  const [negPend, setNegPend] = useState(null);      // trato pendiente de resolver tras negociar
 
   // Mantener el flag de sonido sincronizado con el estado de "muted"
   useEffect(() => { setSoundOn(!muted); try { localStorage.setItem("ratrace_muted", muted ? "1" : "0"); } catch {} }, [muted]);
@@ -1159,28 +1170,21 @@ export default function RatRaceGame() {
     const esAccionPositiva = idx !== 1; // index 1 is always "reject/pass"
 
     if (outcomeCategoria && esAccionPositiva) {
-      // Resolve with probability based on skills AND experience
+      // Si eliges NEGOCIAR (opción 2) un trato con un cliente, se abre el panel
+      // de diálogo: tus respuestas (según tus habilidades) mejoran el resultado.
+      const esNegociacion = idx === 2 && (outcomeCategoria === "cliente_potencial" || outcomeCategoria === "contrato_grande");
+      if (esNegociacion) {
+        setEvento(null);
+        setNegPend({ ev: evento, imp });
+        setObjecion(getObjecion(outcomeCategoria, habilidades));
+        sfx("click");
+        return;
+      }
+      // Tomar el trato directo: se resuelve con probabilidad por skills y experiencia.
       const resolved = resolveOutcome(evento.id, habilidades, experiencia);
       if (resolved) {
-        // Experiencia por completar un trabajo (más si sale bien)
-        setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + (resolved.tipo === "ganado" ? 3 : resolved.tipo === "perdido" ? 1 : 2)));
-        // Apply energy cost immediately
-        if (imp.energia) setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, Math.max(0, prev.actual + imp.energia)) }));
-        // Apply resolved outcome finances
-        setFinances(prev => {
-          const nuevo = { ...prev };
-          if (resolved.impacto?.dinero) nuevo.dinero += resolved.impacto.dinero;
-          if (resolved.impacto?.ingreso) nuevo.ingresoMensual += resolved.impacto.ingreso;
-          if (resolved.impacto?.activosMes) nuevo.activosPasivos += resolved.impacto.activosMes;
-          checkWin(nuevo); return nuevo;
-        });
-        if (resolved.impacto?.seguimiento) setSeguimientos(prev => [...prev, { evento: evento.titulo, ciclo }]);
-        if (resolved.tipo === "ganado") setMentorTip(MENTOR_TIPS.buenaDecision);
-        if (resolved.impacto?.activosMes > 0) setMentorTip(MENTOR_TIPS.invertir);
-        addLog(`"${evento.titulo}" → ${resolved.titulo}`, resolved.tipo === "ganado" ? "success" : resolved.tipo === "perdido" ? "danger" : "info");
-        sfx(resolved.tipo === "ganado" ? "success" : resolved.tipo === "perdido" ? "error" : "click");
         setEvento(null);
-        setOutcome(resolved); // shows immediately
+        procesarResolved(evento, imp, resolved);
         return;
       }
     }
@@ -1224,26 +1228,65 @@ export default function RatRaceGame() {
     setEvento(null);
   };
 
+  // Aplica el resultado resuelto (ganado/perdido/...) a tus finanzas y lo muestra.
+  const procesarResolved = (ev, imp, resolved) => {
+    setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + (resolved.tipo === "ganado" ? 3 : resolved.tipo === "perdido" ? 1 : 2)));
+    if (imp.energia) setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, Math.max(0, prev.actual + imp.energia)) }));
+    setFinances(prev => {
+      const nuevo = { ...prev };
+      if (resolved.impacto?.dinero) nuevo.dinero += resolved.impacto.dinero;
+      if (resolved.impacto?.ingreso) nuevo.ingresoMensual += resolved.impacto.ingreso;
+      if (resolved.impacto?.activosMes) nuevo.activosPasivos += resolved.impacto.activosMes;
+      checkWin(nuevo); return nuevo;
+    });
+    if (resolved.impacto?.seguimiento) setSeguimientos(prev => [...prev, { evento: ev.titulo, ciclo }]);
+    if (resolved.tipo === "ganado") setMentorTip(MENTOR_TIPS.buenaDecision);
+    if (resolved.impacto?.activosMes > 0) setMentorTip(MENTOR_TIPS.invertir);
+    addLog(`"${ev.titulo}" → ${resolved.titulo}`, resolved.tipo === "ganado" ? "success" : resolved.tipo === "perdido" ? "danger" : "info");
+    sfx(resolved.tipo === "ganado" ? "success" : resolved.tipo === "perdido" ? "error" : "click");
+    setOutcome(resolved);
+  };
+
+  // Tras responder en el panel de diálogo, la calidad de tu respuesta (0-3)
+  // da un bono a la probabilidad de cerrar el trato.
+  const resolverNegociacion = (score) => {
+    const pend = negPend;
+    setObjecion(null); setNegPend(null);
+    if (!pend) return;
+    let bonus = [-8, 4, 14, 22][score] ?? 0;
+    // Las habilidades de comunicación te ayudan a convencer mejor.
+    if (habilidades.includes("oratoria")) bonus += 4;
+    if (habilidades.includes("lenguaje_corporal")) bonus += 4;
+    const resolved = resolveOutcome(pend.ev.id, habilidades, experiencia, bonus);
+    if (resolved) procesarResolved(pend.ev, pend.imp, resolved);
+  };
+
   const aprenderHabilidad = (skill) => {
     if (finances.dinero < skill.costo) { showNotif("Sin dinero suficiente", C.red); return; }
     if (energia.actual < skill.energiaCosto) { showNotif("Sin energía suficiente", C.yellow); return; }
     if (habilidades.includes(skill.id)) { showNotif("Ya tienes esta habilidad", C.yellow); return; }
-    // Algunas habilidades de negocio forman una empresa que genera ingreso pasivo.
-    setFinances(prev => ({ ...prev, dinero: prev.dinero - skill.costo, activosPasivos: prev.activosPasivos + (skill.ingresoPasivo || 0) }));
+    // Algunas habilidades forman una empresa (ingreso pasivo) o atraen clientes (ingreso mensual).
+    setFinances(prev => ({ ...prev, dinero: prev.dinero - skill.costo, activosPasivos: prev.activosPasivos + (skill.ingresoPasivo || 0), ingresoMensual: prev.ingresoMensual + (skill.ingresoMensual || 0) }));
     setEnergia(prev => ({ ...prev, actual: Math.max(0, prev.actual - skill.energiaCosto) }));
     setHabilidades(prev => [...prev, skill.id]);
-    addLog(skill.ingresoPasivo ? `Formaste un negocio: ${skill.nombre} (+${fmt(skill.ingresoPasivo)}/mes)` : `Aprendiste: ${skill.nombre}`, "success");
-    showNotif(skill.ingresoPasivo ? `🏢 Negocio creado: +${fmt(skill.ingresoPasivo)}/mes` : `✓ ${skill.nombre} desbloqueada`, C.green);
+    const extra = skill.ingresoPasivo ? ` (+${fmt(skill.ingresoPasivo)}/mes pasivo)` : skill.ingresoMensual ? ` (+${fmt(skill.ingresoMensual)}/mes en clientes)` : "";
+    addLog(`${skill.ingresoPasivo ? "Formaste un negocio" : "Aprendiste"}: ${skill.nombre}${extra}`, "success");
+    showNotif(skill.ingresoPasivo ? `🏢 Negocio creado:${extra}` : skill.ingresoMensual ? `📣 Clientes nuevos:${extra}` : `✓ ${skill.nombre} desbloqueada`, C.green);
     sfx("success");
   };
 
   const descansar = () => {
+    // Descansar cuesta un costo moderado (comida, salidas, etc.), pero ~35% de las veces es gratis.
+    const COSTO_DESCANSO = 1000;
+    const gratis = Math.random() < 0.35 || finances.dinero < COSTO_DESCANSO;
+    const costo = gratis ? 0 : COSTO_DESCANSO;
+    setFinances(prev => ({ ...prev, dinero: prev.dinero - costo }));
     setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, prev.actual + 35) }));
     setCiclo(c => c + 1);
     setAvatarPos("durmiendo");
     setTimeout(() => setAvatarPos("casa"), 1200);
-    addLog("Descansaste — energía recuperada", "info");
-    showNotif("Descansaste ✓", C.blue);
+    addLog(gratis ? "Descansaste gratis — energía recuperada" : `Descansaste (-${fmt(costo)}) — energía recuperada`, "info");
+    showNotif(gratis ? "Descanso gratis ✓" : `Descansaste (-${fmt(costo)}) ✓`, C.blue);
     sfx("click");
   };
 
@@ -1327,6 +1370,46 @@ export default function RatRaceGame() {
     addLog(`Vendiste ${p.nombre} por ${fmt(p.valorActual)} (${ganancia >= 0 ? "+" : ""}${fmt(ganancia)})`, ganancia >= 0 ? "success" : "danger");
     showNotif(`Vendido por ${fmt(p.valorActual)}`, ganancia >= 0 ? C.green : C.yellow);
     sfx("pay");
+  };
+
+  // ============================================================
+  // INVERTIR EN TU NEGOCIO Y PUBLICIDAD DE PAGO
+  // ============================================================
+  const tieneNegocio = !!finances && (habilidades.includes("agencia_marketing") || (pertenencias || []).some(p => p.tipo === "negocio"));
+  const INVERSIONES_NEGOCIO = [
+    { id: "empleado", nombre: "Contratar más gente", emoji: "👷", costo: 4000,  pasivo: 700,  desc: "Más manos = más capacidad y más ingreso pasivo." },
+    { id: "sucursal", nombre: "Abrir otra sucursal", emoji: "🏬", costo: 15000, pasivo: 2600, desc: "Expande tu negocio a otra ubicación." },
+    { id: "linea",    nombre: "Nueva línea de negocio", emoji: "🚀", costo: 9000,  pasivo: 1600, desc: "Diversifica con otro tipo de negocio." },
+  ];
+  const invertirNegocio = (inv) => {
+    if (finances.dinero < inv.costo) { showNotif("Sin efectivo suficiente", C.red); return; }
+    // El analista de datos hace tu inversión más rentable (+25%).
+    const pasivo = Math.round(inv.pasivo * (habilidades.includes("analisis_datos") ? 1.25 : 1));
+    setFinances(f => { const nf = { ...f, dinero: f.dinero - inv.costo, activosPasivos: f.activosPasivos + pasivo }; checkWin(nf); return nf; });
+    addLog(`Invertiste en tu negocio: ${inv.nombre} (+${fmt(pasivo)}/mes)`, "success");
+    showNotif(`🏢 ${inv.nombre}: +${fmt(pasivo)}/mes`, C.green);
+    sfx("coin");
+  };
+  const correrPublicidad = (costo) => {
+    if (finances.dinero < costo) { showNotif("Sin efectivo suficiente", C.red); return; }
+    // Tus habilidades de marketing aumentan la probabilidad y el retorno de la campaña.
+    let exito = 0.5;
+    if (habilidades.includes("marketing")) exito += 0.2;
+    if (habilidades.includes("marca_personal")) exito += 0.1;
+    if (habilidades.includes("analisis_datos")) exito += 0.15;
+    const funciono = Math.random() < Math.min(0.95, exito);
+    setFinances(f => {
+      const nuevoIngreso = funciono ? Math.round(costo * (0.6 + Math.random() * 0.9)) : 0; // clientes recurrentes
+      return { ...f, dinero: f.dinero - costo, ingresoMensual: f.ingresoMensual + nuevoIngreso };
+    });
+    if (funciono) {
+      const aprox = Math.round(costo * 0.75);
+      addLog(`Publicidad de pago (${fmt(costo)}) → trajo clientes (~+${fmt(aprox)}/mes)`, "success");
+      showNotif(`📣 ¡La campaña trajo clientes!`, C.green); sfx("success");
+    } else {
+      addLog(`Publicidad de pago (${fmt(costo)}) → no funcionó esta vez`, "danger");
+      showNotif("La campaña no funcionó 😕", C.red); sfx("error");
+    }
   };
 
   // Consejero: da un consejo contextual al pulsar el botón del mentor.
@@ -1686,6 +1769,34 @@ export default function RatRaceGame() {
               })
             )}
 
+            {/* Tu negocio: invertir y publicidad */}
+            {(tieneNegocio || habilidades.includes("marketing") || habilidades.includes("marca_personal")) && (
+              <div style={{ background: `${"#22D3EE"}11`, border: `1px solid ${"#22D3EE"}44`, borderRadius: 12, padding: "13px 16px" }}>
+                <div style={{ fontSize: 11, color: "#22D3EE", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10, fontWeight: 700 }}>🏢 Tu negocio</div>
+                {tieneNegocio ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+                    {INVERSIONES_NEGOCIO.map(inv => {
+                      const puede = finances.dinero >= inv.costo;
+                      return (
+                        <button key={inv.id} disabled={!puede} onClick={() => invertirNegocio(inv)} style={{ background: puede ? C.surface : C.surface, border: `1px solid ${C.border}`, color: puede ? C.textPrimary : C.textMuted, borderRadius: 10, padding: "10px 12px", fontSize: 12, fontWeight: 600, cursor: puede ? "pointer" : "not-allowed", textAlign: "left", opacity: puede ? 1 : 0.5 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}><span>{inv.emoji} {inv.nombre}</span><span style={{ color: C.green }}>+{fmt(inv.pasivo)}/mes</span></div>
+                          <div style={{ fontSize: 10, color: C.textMuted }}>{inv.desc} · {fmt(inv.costo)}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: 11, color: C.textMuted, margin: "0 0 10px" }}>Forma una empresa (habilidad "Agencia de marketing") o compra un negocio para poder invertir y contratar gente.</p>
+                )}
+                <div style={{ fontSize: 11, color: C.textSecondary, marginBottom: 6 }}>📣 Publicidad de pago (atrae clientes):</div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {[2500, 5000].map(c => (
+                    <button key={c} onClick={() => correrPublicidad(c)} style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, color: C.textPrimary, borderRadius: 10, padding: "9px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Invertir {fmt(c)}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Mercado de bienes */}
             <div style={{ fontSize: 11, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>🏪 Mercado</div>
             {MERCADO_BIENES.map(b => {
@@ -1791,6 +1902,7 @@ export default function RatRaceGame() {
       </div>
 
       {evento && <EventModal evento={evento} onChoice={handleEventChoice} habilidades={habilidades} energia={energia} />}
+      {objecion && <ObjecionModal objecion={objecion} habilidades={habilidades} onResult={resolverNegociacion} />}
       {outcome && <OutcomeModal outcome={outcome} onClose={() => setOutcome(null)} />}
     </div>
   ); }

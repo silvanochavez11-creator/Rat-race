@@ -39,8 +39,16 @@ npm run preview  # sirve la versión de producción para probarla
 - **Sistema de energía**: cada ciclo te cansa; descansa para no quedarte sin energía.
 - **Eventos**: chambas, oportunidades, inversiones, gastos imprevistos y hasta
   crisis económicas ("cisnes negros").
-- **Sistema de objeciones de ventas**: practica respuestas reales a clientes
-  ("está muy caro", "déjame pensarlo"...) y aprende la lección detrás de cada una.
+- **Negociación con diálogo**: al elegir "Negociar" un trato con un cliente se
+  abre un panel donde respondes a sus objeciones ("está muy caro", "déjame
+  pensarlo"...). La calidad de tu respuesta y tus habilidades (oratoria,
+  lenguaje corporal, cierre...) determinan si cierras el contrato.
+- **Tiempos difíciles**: meses sin ventas, crisis económica del país,
+  accidentes con gasto médico, inflación que sube tus gastos fijos, etc.
+- **Invierte en tu negocio**: contrata más gente, abre sucursales o nuevas
+  líneas, y corre **publicidad de pago** para atraer clientes.
+- **Descansar cuesta dinero** (moderado, y a veces es gratis): cuida tu energía
+  sin descapitalizarte.
 - **Mentor / consejero**: te da consejos contextuales según tu situación, y
   puedes pedirle consejo cuando quieras con el botón "🧑‍🏫 Pedir consejo".
 - **Sistema de deuda con bancos ficticios**: pestaña 💳 **Deudas** donde:
