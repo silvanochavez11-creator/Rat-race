@@ -4,6 +4,9 @@ node_modules/
 # Build de producción
 dist/
 
+# Archivo único generado (se regenera con: npm run build:single)
+RatRace-jugar.html
+
 # Logs y temporales
 *.log
 .DS_Store
