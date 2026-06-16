@@ -90,6 +90,9 @@ npm run preview  # sirve la versión de producción para probarla
 - **Sonido y animaciones**: efectos de sonido (con botón 🔊/🔇 para silenciar)
   y animaciones sutiles.
 - **Meta**: ingresos pasivos `>` gastos mensuales.
+- **Tabla de líderes**: al salir de la carrera, tu tiempo se registra y compite en
+  un **podio (top 3)** y un **top 10** de tus partidas más rápidas (ranqueadas por
+  el tiempo real en meses, para comparar perfiles de forma justa).
 
 ## 🗂️ Estructura del proyecto
 

@@ -783,6 +783,22 @@ button:active:not(:disabled) { transform: scale(0.95); }
 const SAVE_KEY = "ratrace_save_v1";
 
 // ============================================================
+// TABLA DE LÍDERES (mejores tiempos en salir de la carrera)
+// Se guarda en el navegador. Se ordena por tiempo real (meses), ascendente.
+// ============================================================
+const LB_KEY = "ratrace_leaderboard_v1";
+const cargarTabla = () => { try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; } catch { return []; } };
+const guardarTabla = (list) => { try { localStorage.setItem(LB_KEY, JSON.stringify(list)); } catch {} };
+const agregarATabla = (entry) => {
+  const lista = cargarTabla();
+  lista.push(entry);
+  lista.sort((a, b) => (a.tiempoMeses - b.tiempoMeses) || (a.fecha - b.fecha));
+  const top = lista.slice(0, 50);   // guardamos historial; mostramos top 10
+  guardarTabla(top);
+  return top;
+};
+
+// ============================================================
 // HELPERS
 // ============================================================
 const fmt = (n) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(n);
@@ -1144,6 +1160,9 @@ export default function RatRaceGame() {
   const [shakeMoney, setShakeMoney] = useState(0);    // contador para animar shake al perder dinero
   const [levelFlash, setLevelFlash] = useState(0);    // flash al subir de nivel
   const [cyclePulse, setCyclePulse] = useState(0);    // pulso del flujo al avanzar ciclo
+  const [tabla, setTabla] = useState(() => cargarTabla());  // tabla de líderes
+  const [miEntradaId, setMiEntradaId] = useState(null);     // id de tu partida recién registrada
+  const winRecordedRef = useRef(false);
   const dineroPrevRef = useRef(null);
   const nivelPrevRef = useRef(1);
   const floaterId = useRef(0);
@@ -1175,6 +1194,22 @@ export default function RatRaceGame() {
     if (n > nivelPrevRef.current) setLevelFlash(f => f + 1);
     nivelPrevRef.current = n;
   }, [experiencia]);
+
+  // Al GANAR: registra tu tiempo en la tabla de líderes (una sola vez).
+  useEffect(() => {
+    if (screen === "win" && profile && finances && !winRecordedRef.current) {
+      winRecordedRef.current = true;
+      const id = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      const entry = {
+        id, perfil: profile.name, emoji: profile.emoji, dificultad: profile.dificultad,
+        ciclo, cicloLabel: getCicloLabel(profile.ciclo),
+        tiempoMeses: Math.round(ciclo * factorDe(profile.ciclo) * 10) / 10,
+        pasivo: finances.activosPasivos, fecha: Date.now(),
+      };
+      setTabla(agregarATabla(entry));
+      setMiEntradaId(id);
+    }
+  }, [screen]);
 
   // Mantener el flag de sonido sincronizado con el estado de "muted"
   useEffect(() => { setSoundOn(!muted); try { localStorage.setItem("ratrace_muted", muted ? "1" : "0"); } catch {} }, [muted]);
@@ -1234,6 +1269,7 @@ export default function RatRaceGame() {
     setCiclo(0); setLog([]); setSeguimientos([]); setOutcome(null);
     setExperiencia(0); setPuntosMaestria(0); setCredito(20); setPertenencias([]);
     setActiveRama(p.ramaAfin || (p.ramasPermitidas && p.ramasPermitidas[0]) || "finanzas");
+    winRecordedRef.current = false; setMiEntradaId(null);
     setScreen("game");
     sfx("click");
   };
@@ -1267,6 +1303,7 @@ export default function RatRaceGame() {
       setDominios(dom);
       const perms = data.profile && data.profile.ramasPermitidas;
       setActiveRama((data.profile && data.profile.ramaAfin) || (perms && perms[0]) || "finanzas");
+      winRecordedRef.current = false; setMiEntradaId(null);
       setScreen("game"); sfx("click");
     } catch {}
   };
@@ -1820,12 +1857,12 @@ export default function RatRaceGame() {
   // WIN
   // ============================================================
   if (screen === "win") return (
-    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Inter', -apple-system, sans-serif", overflowY: "auto" }}>
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 64, marginBottom: 16 }}>🏆</div>
         <h1 style={{ color: C.green, fontSize: 26, fontWeight: 900, marginBottom: 6 }}>¡Saliste del Rat Race!</h1>
         <p style={{ color: C.textSecondary, fontSize: 14, marginBottom: 20 }}>
-          Lo lograste en <strong style={{ color: C.textPrimary }}>{ciclo} {getCicloLabel(profile?.ciclo)}s</strong> como <strong style={{ color: C.textPrimary }}>{profile?.name}</strong>
+          Lo lograste en <strong style={{ color: C.textPrimary }}>{ciclo} {getCicloLabel(profile?.ciclo)}s</strong> (≈ {profile ? Math.round(ciclo * factorDe(profile.ciclo) * 10) / 10 : ciclo} meses) como <strong style={{ color: C.textPrimary }}>{profile?.name}</strong>
         </p>
         <div style={{ background: C.card, borderRadius: 16, padding: 20, marginBottom: 20 }}>
           <div style={{ color: C.textSecondary, fontSize: 12, marginBottom: 6 }}>Ingreso pasivo mensual</div>
@@ -1843,6 +1880,49 @@ export default function RatRaceGame() {
             })}
           </div>
         </div>
+        {/* 🏁 PODIO + TOP 10 (tus partidas más rápidas) */}
+        {(() => {
+          const top = tabla.slice(0, 10);
+          const miRank = tabla.findIndex(e => e.id === miEntradaId);
+          const podio = top.slice(0, 3);
+          const medallas = ["🥇", "🥈", "🥉"];
+          const alturas = [66, 50, 42];
+          return (
+            <div style={{ background: C.card, borderRadius: 16, padding: 16, marginBottom: 20, animation: "rr-fadein 0.4s ease" }}>
+              <div style={{ color: C.textSecondary, fontSize: 12, marginBottom: 12 }}>🏁 Mejores tiempos en salir de la carrera</div>
+              {/* Podio: 2º, 1º (más alto al centro), 3º */}
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 8, marginBottom: 14 }}>
+                {[1, 0, 2].map(pos => {
+                  const e = podio[pos];
+                  if (!e) return <div key={pos} style={{ flex: 1 }} />;
+                  const esMio = e.id === miEntradaId;
+                  return (
+                    <div key={pos} style={{ flex: 1, textAlign: "center" }}>
+                      <div style={{ fontSize: 24 }}>{medallas[pos]}</div>
+                      <div style={{ fontSize: 12, color: esMio ? C.green : C.textPrimary, fontWeight: 800 }}>{e.tiempoMeses} <span style={{ fontSize: 9, fontWeight: 400 }}>meses</span></div>
+                      <div style={{ fontSize: 9, color: C.textMuted, marginBottom: 4 }}>{e.emoji}</div>
+                      <div style={{ height: alturas[pos], background: esMio ? `linear-gradient(180deg, ${C.green}, ${C.green}55)` : `linear-gradient(180deg, ${C.purple}, ${C.purple}44)`, borderRadius: "8px 8px 0 0" }} />
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Lista top 10 */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                {top.map((e, i) => (
+                  <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, padding: "5px 8px", borderRadius: 8, background: e.id === miEntradaId ? `${C.green}22` : "transparent", border: e.id === miEntradaId ? `1px solid ${C.green}66` : "1px solid transparent" }}>
+                    <span style={{ color: C.textSecondary }}>{i + 1}. {e.emoji} {e.perfil}</span>
+                    <span style={{ color: e.id === miEntradaId ? C.green : C.textPrimary, fontWeight: 700 }}>{e.tiempoMeses} meses <span style={{ color: C.textMuted, fontWeight: 400 }}>({e.ciclo} {e.cicloLabel}s)</span></span>
+                  </div>
+                ))}
+              </div>
+              {miRank >= 0 && (
+                <p style={{ color: miRank < 3 ? C.yellow : C.textSecondary, fontSize: 12, marginTop: 10, fontWeight: 700 }}>
+                  {miRank === 0 ? "🥇 ¡NUEVO RÉCORD! Quedaste en 1er lugar" : `Tu partida quedó en el lugar #${miRank + 1} de ${tabla.length}`}
+                </p>
+              )}
+            </div>
+          );
+        })()}
         <button onClick={() => setScreen("select")} style={{ background: `linear-gradient(135deg, ${C.purple}, #9333EA)`, color: "white", border: "none", borderRadius: 16, padding: 15, fontSize: 15, fontWeight: 700, cursor: "pointer", width: "100%" }}>
           Jugar de nuevo
         </button>
