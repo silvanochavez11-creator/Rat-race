@@ -80,6 +80,17 @@ const SKILL_TREE = {
       { id: "agencia_marketing", nombre: "Agencia de marketing", costo: 5500, energiaCosto: 30, descripcion: "Formas una empresa con empleados que trabaja por ti.", requiere: "contratar_personal", ingresoPasivo: 1200 },
       { id: "escalar_negocio", nombre: "Escalar negocio", costo: 9500, energiaCosto: 40, descripcion: "Sistematizas y multiplicas tu empresa.", requiere: "agencia_marketing", ingresoPasivo: 2800 },
     ]
+  },
+  salud: {
+    label: "Salud", icon: "🩺", color: "#2DD4BF",
+    skills: [
+      { id: "medicina_general", nombre: "Medicina general", costo: 1500, energiaCosto: 15, descripcion: "Consultas y atención médica general.", requiere: null },
+      { id: "especialidad", nombre: "Especialidad médica", costo: 5000, energiaCosto: 30, descripcion: "Cardiología, pediatría... Contratos médicos mejor pagados.", requiere: "medicina_general" },
+      { id: "cirugia", nombre: "Cirugía", costo: 9000, energiaCosto: 40, descripcion: "Cirugías de alto valor y prestigio.", requiere: "especialidad" },
+      { id: "consultorio_propio", nombre: "Consultorio propio", costo: 6000, energiaCosto: 25, descripcion: "Abres tu propio consultorio: ingreso pasivo.", requiere: "medicina_general", ingresoPasivo: 1800 },
+      { id: "clinica", nombre: "Clínica con doctores", costo: 12000, energiaCosto: 35, descripcion: "Contratas doctores: tu clínica trabaja por ti.", requiere: "consultorio_propio", ingresoPasivo: 3800 },
+      { id: "hospital", nombre: "Cadena / Hospital", costo: 20000, energiaCosto: 45, descripcion: "Escalas a hospital o cadena de clínicas.", requiere: "clinica", ingresoPasivo: 6500 },
+    ]
   } };
 
 // ============================================================
@@ -91,6 +102,7 @@ const PROFILES = [
     description: "Sin trabajo, sin deudas. Empiezas vendiendo lo que puedes.",
     stats: { carisma: 2, conocimiento: 3, red: 1 },
     habilidades: [],
+    ramaAfin: "finanzas",
     finances: { dinero: 800, ingresoMensual: 0, gastosMensuales: 1200, deudas: 0, activosPasivos: 0 },
     energia: { actual: 60, max: 100 },
     ciclo: "diario", dificultad: "Extremo", color: C.purple
@@ -100,6 +112,7 @@ const PROFILES = [
     description: "Ingresos irregulares, gastos fijos. Ya tienes habilidades digitales.",
     stats: { carisma: 3, conocimiento: 4, red: 2 },
     habilidades: ["redes_sociales", "diseno"],
+    ramaAfin: "digital",
     finances: { dinero: 5000, ingresoMensual: 8000, gastosMensuales: 6500, deudas: 15000, activosPasivos: 0 },
     energia: { actual: 75, max: 100 },
     ciclo: "semanal", dificultad: "Difícil", color: C.orange
@@ -109,6 +122,7 @@ const PROFILES = [
     description: "Sueldo fijo quincenal. Estable, pero atrapado en la rutina.",
     stats: { carisma: 3, conocimiento: 3, red: 3 },
     habilidades: ["atencion_cliente", "ventas_basicas"],
+    ramaAfin: "ventas",
     finances: { dinero: 8000, ingresoMensual: 14000, gastosMensuales: 11000, deudas: 35000, activosPasivos: 0 },
     energia: { actual: 70, max: 100 },
     ciclo: "quincenal", dificultad: "Medio", color: C.blue
@@ -117,7 +131,8 @@ const PROFILES = [
     id: "profesional", name: "Doctor / Profesionista", emoji: "🩺",
     description: "Ingresos altos, deudas altísimas. El rat race clásico.",
     stats: { carisma: 4, conocimiento: 5, red: 4 },
-    habilidades: ["presupuesto", "ahorro"],
+    habilidades: ["medicina_general", "presupuesto"],
+    ramaAfin: "salud",
     finances: { dinero: 20000, ingresoMensual: 45000, gastosMensuales: 38000, deudas: 180000, activosPasivos: 0 },
     energia: { actual: 65, max: 100 },
     ciclo: "mensual", dificultad: "Fácil", color: C.green
@@ -167,7 +182,12 @@ const EVENTOS = [
   { id: "i1", tipo: "inmueble", bienId: "casa_chica", descuento: 0.9,  titulo: "Casa en remate", descripcion: "Una casa en remate, 10% bajo precio. Necesitas bienes raíces (y ventas ayuda con inquilinos). Cómprala o finánciala.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -10 }, { energia: 0 }, { energia: -10 }], emoji: "🏠", requiereHabilidad: "bienes_raices" },
   { id: "i2", tipo: "inmueble", bienId: "depa", descuento: 0.92, titulo: "Departamento de oportunidad", descripcion: "Departamento céntrico con descuento. Requiere bienes raíces. Págalo o finánicialo si no te alcanza.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -10 }, { energia: 0 }, { energia: -10 }], emoji: "🏢", requiereHabilidad: "bienes_raices" },
   { id: "i3", tipo: "inmueble", bienId: "duplex", descuento: 0.9,  titulo: "Dúplex para rentar", descripcion: "Dos unidades para rentar por separado. Requiere bienes raíces. Buen flujo si consigues inquilinos.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -12 }, { energia: 0 }, { energia: -12 }], emoji: "🏘️", requiereHabilidad: "bienes_raices" },
-  { id: "i4", tipo: "inmueble", bienId: "edificio", descuento: 0.93, titulo: "Edificio en venta", descripcion: "Un edificio de 6 deptos. Gran inversión. Casi nadie lo paga de contado: financíalo y réntalo.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -15 }, { energia: 0 }, { energia: -15 }], emoji: "🏨", requiereHabilidad: "bienes_raices" }, ];
+  { id: "i4", tipo: "inmueble", bienId: "edificio", descuento: 0.93, titulo: "Edificio en venta", descripcion: "Un edificio de 6 deptos. Gran inversión. Casi nadie lo paga de contado: financíalo y réntalo.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -15 }, { energia: 0 }, { energia: -15 }], emoji: "🏨", requiereHabilidad: "bienes_raices" },
+  // Eventos médicos (para profesionistas de la salud)
+  { id: "m1", tipo: "chamba", titulo: "Consulta urgente", descripcion: "Un paciente necesita atención médica de inmediato.", opciones: ["Atender $1,500", "Rechazar", "Consulta premium $2,800"], impacto: [{ dinero: 1500, energia: -20 }, { dinero: 0, energia: 0 }, { dinero: 2800, energia: -30 }], emoji: "🩺", requiereHabilidad: "medicina_general" },
+  { id: "m2", tipo: "chamba", titulo: "Guardia nocturna", descripcion: "Te ofrecen cubrir una guardia en el hospital esta noche.", opciones: ["Cubrir guardia $3,000", "No puedes", "Doble guardia $5,500"], impacto: [{ dinero: 3000, energia: -35 }, { dinero: 0, energia: 0 }, { dinero: 5500, energia: -50 }], emoji: "🌙", requiereHabilidad: "medicina_general" },
+  { id: "m3", tipo: "oportunidad", titulo: "Cirugía programada", descripcion: "Te asignan una cirugía importante y bien pagada.", opciones: ["Operar", "Rechazar", "Negociar honorarios"], impacto: [{ dinero: 18000, energia: -40 }, { dinero: 0, energia: 0 }, { dinero: 26000, energia: -50 }], emoji: "🔪", requiereHabilidad: "cirugia" },
+  { id: "m4", tipo: "oportunidad", titulo: "Consultoría médica", descripcion: "Una aseguradora quiere contratar tu especialidad como asesor.", opciones: ["Presentar propuesta", "Rechazar", "Negociar contrato anual"], impacto: [{ dinero: 6000, ingreso: 2500, energia: -25 }, { dinero: 0, energia: 0 }, { dinero: 9000, ingreso: 4000, energia: -35 }], emoji: "📋", requiereHabilidad: "especialidad" }, ];
 
 // ============================================================
 // OBJECTION / NEGOTIATION SYSTEM
@@ -317,7 +337,7 @@ const OUTCOMES = {
   },
   contrato_grande: {
     stat: "carisma",
-    habilidadBonus: { cierre: 20, negociacion: 30, marketing: 15, maestro_obra: 25, agencia_marketing: 25, escalar_negocio: 30 },
+    habilidadBonus: { cierre: 20, negociacion: 30, marketing: 15, maestro_obra: 25, agencia_marketing: 25, escalar_negocio: 30, cirugia: 35, especialidad: 25 },
     resultados: [
       {
         tipo: "ganado",
@@ -359,7 +379,7 @@ const OUTCOMES = {
   },
   chamba_oficio: {
     stat: "habilidades",
-    habilidadBonus: { mecanica_avanzada: 25, electricidad: 20, plomeria: 15, albanileria: 18, carpinteria: 18, herreria: 20, maestro_obra: 30 },
+    habilidadBonus: { mecanica_avanzada: 25, electricidad: 20, plomeria: 15, albanileria: 18, carpinteria: 18, herreria: 20, maestro_obra: 30, medicina_general: 22, especialidad: 28 },
     resultados: [
       {
         tipo: "ganado",
@@ -457,7 +477,11 @@ const EVENTO_OUTCOME_MAP = {
   e24: "chamba_oficio",
   e25: "chamba_oficio",
   e26: "contrato_grande",
-  e27: "contrato_grande", };
+  e27: "contrato_grande",
+  m1: "chamba_oficio",
+  m2: "chamba_oficio",
+  m3: "contrato_grande",
+  m4: "contrato_grande", };
 
 // Calculate success probability based on skills (escalado por la maestría de cada skill)
 const calcProbabilidad = (outcomeConfig, habilidades, resultado, dominios = {}) => {
@@ -991,9 +1015,10 @@ function OutcomeModal({ outcome, onClose }) {
     </div>
   ); }
 
-function SkillNode({ skill, comprada, puedePagar, puedeCursar, ramaColor, onComprar, energiaActual }) {
+function SkillNode({ skill, comprada, puedePagar, puedeCursar, ramaColor, onComprar, energiaActual, costo, afin }) {
   const suficienteEnergia = energiaActual >= skill.energiaCosto;
   const disponible = !comprada && puedePagar && puedeCursar && suficienteEnergia;
+  const costoMostrar = costo ?? skill.costo;
   return (
     <div style={{
       background: comprada ? `${ramaColor}15` : C.surface,
@@ -1010,9 +1035,10 @@ function SkillNode({ skill, comprada, puedePagar, puedeCursar, ramaColor, onComp
             <span style={{ color: comprada ? ramaColor : C.textPrimary, fontSize: 13, fontWeight: 700 }}>{skill.nombre}</span>
           </div>
           <p style={{ color: C.textSecondary, fontSize: 11, margin: "0 0 6px" }}>{skill.descripcion}</p>
-          <div style={{ display: "flex", gap: 10, fontSize: 11 }}>
-            <span style={{ color: C.green }}>{fmt(skill.costo)}</span>
+          <div style={{ display: "flex", gap: 10, fontSize: 11, alignItems: "center" }}>
+            <span style={{ color: C.green }}>{fmt(costoMostrar)}{afin && !comprada && <span style={{ color: C.textMuted, textDecoration: "line-through", marginLeft: 4 }}>{fmt(skill.costo)}</span>}</span>
             <span style={{ color: C.red }}>⚡-{skill.energiaCosto}</span>
+            {afin && <span style={{ color: ramaColor, fontWeight: 700 }}>★ afín</span>}
           </div>
         </div>
         {!comprada && (
@@ -1364,12 +1390,18 @@ export default function RatRaceGame() {
     if (resolved) procesarResolved(pend.ev, pend.imp, resolved);
   };
 
+  // Afinidad: las habilidades de tu rama recomendada cuestan menos (-25%).
+  const ramaDe = (skillId) => { const e = getRamaBySkillId(skillId); return e ? e[0] : null; };
+  const esAfin = (skill) => !!(profile && profile.ramaAfin && ramaDe(skill.id) === profile.ramaAfin);
+  const costoSkillEfectivo = (skill) => esAfin(skill) ? Math.round(skill.costo * 0.75) : skill.costo;
+
   const aprenderHabilidad = (skill) => {
-    if (finances.dinero < skill.costo) { showNotif("Sin dinero suficiente", C.red); return; }
+    const costo = costoSkillEfectivo(skill);
+    if (finances.dinero < costo) { showNotif("Sin dinero suficiente", C.red); return; }
     if (energia.actual < skill.energiaCosto) { showNotif("Sin energía suficiente", C.yellow); return; }
     if (habilidades.includes(skill.id)) { showNotif("Ya tienes esta habilidad", C.yellow); return; }
     // Algunas habilidades forman una empresa (ingreso pasivo) o atraen clientes (ingreso mensual).
-    setFinances(prev => ({ ...prev, dinero: prev.dinero - skill.costo, activosPasivos: prev.activosPasivos + (skill.ingresoPasivo || 0), ingresoMensual: prev.ingresoMensual + (skill.ingresoMensual || 0) }));
+    setFinances(prev => ({ ...prev, dinero: prev.dinero - costo, activosPasivos: prev.activosPasivos + (skill.ingresoPasivo || 0), ingresoMensual: prev.ingresoMensual + (skill.ingresoMensual || 0) }));
     setEnergia(prev => ({ ...prev, actual: Math.max(0, prev.actual - skill.energiaCosto) }));
     setHabilidades(prev => [...prev, skill.id]);
     setDominios(prev => ({ ...prev, [skill.id]: 1 }));   // empieza con maestría 1
@@ -1671,6 +1703,11 @@ export default function RatRaceGame() {
                   const sk = getSkillById(hId);
                   return sk ? <span key={hId} style={{ background: C.surface, color: C.textSecondary, fontSize: 10, padding: "2px 8px", borderRadius: 99, border: `1px solid ${C.border}` }}>✓ {sk.nombre}</span> : null;
                 })}
+              </div>
+            )}
+            {p.ramaAfin && SKILL_TREE[p.ramaAfin] && (
+              <div style={{ marginTop: 8, fontSize: 11, color: SKILL_TREE[p.ramaAfin].color }}>
+                ★ Carrera recomendada: <strong>{SKILL_TREE[p.ramaAfin].icon} {SKILL_TREE[p.ramaAfin].label}</strong> (−25% en sus habilidades)
               </div>
             )}
           </div>
@@ -2044,22 +2081,33 @@ export default function RatRaceGame() {
         {activeTab === "habilidades" && (
           <div>
             <div style={{ display: "flex", gap: 6, marginBottom: 14, overflowX: "auto", paddingBottom: 4 }}>
-              {Object.entries(SKILL_TREE).map(([key, r]) => (
-                <button key={key} onClick={() => setActiveRama(key)} style={{
-                  background: activeRama === key ? `${r.color}22` : C.surface,
-                  border: `1px solid ${activeRama === key ? r.color : C.border}`,
-                  color: activeRama === key ? r.color : C.textSecondary,
-                  borderRadius: 99, padding: "6px 14px", fontSize: 12, fontWeight: 600,
-                  cursor: "pointer", whiteSpace: "nowrap"
-                }}>
-                  {r.icon} {r.label}
-                </button>
-              ))}
+              {Object.entries(SKILL_TREE).map(([key, r]) => {
+                const recomendada = profile && profile.ramaAfin === key;
+                return (
+                  <button key={key} onClick={() => setActiveRama(key)} style={{
+                    position: "relative",
+                    background: activeRama === key ? `${r.color}22` : C.surface,
+                    border: `1px solid ${activeRama === key ? r.color : recomendada ? `${r.color}88` : C.border}`,
+                    color: activeRama === key ? r.color : C.textSecondary,
+                    borderRadius: 99, padding: "6px 14px", fontSize: 12, fontWeight: 600,
+                    cursor: "pointer", whiteSpace: "nowrap"
+                  }}>
+                    {r.icon} {r.label}{recomendada && <span style={{ color: r.color }}> ★</span>}
+                  </button>
+                );
+              })}
             </div>
+            {profile && SKILL_TREE[activeRama] && profile.ramaAfin === activeRama && (
+              <div style={{ background: `${rama.color}15`, border: `1px solid ${rama.color}44`, borderRadius: 10, padding: "8px 12px", marginBottom: 10, fontSize: 11, color: rama.color }}>
+                ★ <strong>Recomendado para ti</strong> ({profile.name}): estas habilidades cuestan <strong>−25%</strong>.
+              </div>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {rama.skills.map(skill => {
                 const comprada = habilidades.includes(skill.id);
-                const puedePagar = finances.dinero >= skill.costo;
+                const costoEf = costoSkillEfectivo(skill);
+                const afin = esAfin(skill);
+                const puedePagar = finances.dinero >= costoEf;
                 const puedeCursar = !skill.requiere || habilidades.includes(skill.requiere);
                 const dom = dominioDe(dominios, skill.id);
                 const cDinero = costoDineroDominio(skill, dominios);
@@ -2067,7 +2115,7 @@ export default function RatRaceGame() {
                 const maxed = dom >= DOMINIO_MAX;
                 return (
                   <div key={skill.id}>
-                    <SkillNode skill={skill} comprada={comprada} puedePagar={puedePagar} puedeCursar={puedeCursar} ramaColor={rama.color} onComprar={aprenderHabilidad} energiaActual={energia.actual} />
+                    <SkillNode skill={skill} comprada={comprada} puedePagar={puedePagar} puedeCursar={puedeCursar} ramaColor={rama.color} onComprar={aprenderHabilidad} energiaActual={energia.actual} costo={costoEf} afin={afin} />
                     {comprada && (
                       <div style={{ background: C.surface, border: `1px solid ${rama.color}33`, borderTop: "none", borderRadius: "0 0 10px 10px", padding: "8px 12px", marginTop: -4 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.textSecondary, marginBottom: 4 }}>

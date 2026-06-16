@@ -28,9 +28,13 @@ npm run preview  # sirve la versión de producción para probarla
 - **4 perfiles** para empezar: Estudiante, Freelancer, Empleado y Doctor/Profesionista.
   Cada uno con distinto dinero, deudas, habilidades y dificultad.
 - **Árbol de habilidades** de varios nichos (Oficios, Digital, Ventas, Finanzas,
-  🧱 Construcción y 🏢 Negocios): aprende skills que desbloquean mejores
-  oportunidades y suben tus probabilidades. Algunas habilidades de negocio
-  (agencia de marketing, escalar) **forman una empresa que genera ingreso pasivo**.
+  🧱 Construcción, 🏢 Negocios y 🩺 Salud): aprende skills que desbloquean mejores
+  oportunidades y suben tus probabilidades. Algunas habilidades de negocio/salud
+  (agencia de marketing, consultorio/clínica, escalar) **forman una empresa que
+  genera ingreso pasivo** (p. ej. el doctor monta su clínica y contrata doctores).
+- **Afinidad por profesión**: cada perfil tiene una **carrera recomendada** (el
+  doctor → Salud, el freelancer → Digital, etc.) con **−25%** en esas habilidades
+  y una insignia ★ para guiarte. Así cada profesión crece en lo suyo.
 - **Experiencia (nivel 1 a 10)**: sube con las semanas trabajadas y los trabajos
   hechos. A mayor nivel, **más probabilidad de éxito y mejores pagos** en contratos.
 - **Puntos de maestría** (barra independiente del nivel): se acumulan al trabajar
