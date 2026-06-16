@@ -25,6 +25,9 @@ npm run preview  # sirve la versión de producción para probarla
 
 ## 🎮 Mecánicas del juego
 
+- **Tablero de la carrera de la rata**: tiras el dado al avanzar y tu ficha 🐀
+  recorre el tablero. La casilla donde caes (oportunidad, gasto, mercado,
+  cliente, chamba, libre, paga) **sesga el evento** que aparece.
 - **3 niveles de dificultad** (Fácil / Normal / Difícil) que escalan tus gastos
   iniciales, la **inflación** (tus gastos suben con el tiempo) y la frecuencia de
   imprevistos. ¡En Difícil hay que moverse rápido!

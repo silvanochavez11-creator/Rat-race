@@ -850,6 +850,35 @@ const DIFICULTADES = {
 };
 const getDificultad = (id) => DIFICULTADES[id] || DIFICULTADES.normal;
 
+// ============================================================
+// TABLERO (la carrera de la rata): casillas en círculo.
+// La casilla donde caes sesga el tipo de evento que aparece.
+// ============================================================
+const TIPOS_CASILLA = {
+  paga:        { icono: "💰", label: "Paga",     color: "#FFD166", bias: [] },
+  oportunidad: { icono: "💡", label: "Oport.",   color: "#7C6FFF", bias: ["oportunidad", "inmueble"] },
+  gasto:       { icono: "🛍️", label: "Gasto",    color: "#FF8C42", bias: ["gasto", "black_swan"] },
+  mercado:     { icono: "📊", label: "Mercado",  color: "#38BDF8", bias: ["inversion"] },
+  cliente:     { icono: "🤝", label: "Cliente",  color: "#00E5A0", bias: ["oportunidad"] },
+  chamba:      { icono: "🔧", label: "Chamba",   color: "#FB923C", bias: ["chamba"] },
+  descanso:    { icono: "🌴", label: "Libre",    color: "#34D399", bias: ["descanso"] },
+};
+// 20 casillas alrededor del borde (rejilla 7x5)
+const CASILLAS = [
+  "paga", "oportunidad", "gasto", "oportunidad", "mercado", "cliente", "oportunidad",
+  "descanso", "gasto", "oportunidad", "paga", "cliente", "oportunidad", "gasto",
+  "mercado", "oportunidad", "chamba", "gasto", "oportunidad", "cliente",
+];
+// Coordenadas (col, fila) del borde de una rejilla, en sentido horario.
+const posicionesBorde = (cols, filas) => {
+  const c = [];
+  for (let x = 1; x <= cols; x++) c.push([x, 1]);          // fila superior →
+  for (let y = 2; y <= filas; y++) c.push([cols, y]);      // columna derecha ↓
+  for (let x = cols - 1; x >= 1; x--) c.push([x, filas]);  // fila inferior ←
+  for (let y = filas - 1; y >= 2; y--) c.push([1, y]);     // columna izquierda ↑
+  return c;
+};
+
 // Estilo para los botones de mejora de maestría
 const btnDom = (enabled, bg, color) => ({
   flex: 1, background: enabled ? bg : C.surface, color: enabled ? color : C.textMuted,
@@ -886,6 +915,42 @@ function EnergyBar({ actual, max }) {
       </div>
     </div>
   ); }
+
+// Tablero circular "la carrera de la rata"
+function Tablero({ pos, dado, rolling, tired, profileEmoji }) {
+  const cols = 7, filas = 5;
+  const coords = posicionesBorde(cols, filas);
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${filas}, 1fr)`, gap: 4, aspectRatio: `${cols} / ${filas}` }}>
+        {CASILLAS.map((tipo, i) => {
+          const info = TIPOS_CASILLA[tipo] || {};
+          const [c, f] = coords[i];
+          const aqui = i === pos;
+          return (
+            <div key={i} style={{
+              gridColumn: c, gridRow: f, borderRadius: 8,
+              border: `1px solid ${aqui ? info.color : C.border}`,
+              background: aqui ? `${info.color}33` : `${info.color}14`,
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              position: "relative", boxShadow: aqui ? `0 0 10px ${info.color}aa` : "none", transition: "box-shadow 0.2s, background 0.2s"
+            }}>
+              <span style={{ fontSize: 13, lineHeight: 1 }}>{info.icono}</span>
+              <span style={{ fontSize: 6.5, color: C.textMuted }}>{info.label}</span>
+              {aqui && <span key={pos} style={{ position: "absolute", top: -4, right: -4, fontSize: 16, animation: "rr-pop 0.3s ease" }}>{tired ? "😴" : "🐀"}</span>}
+            </div>
+          );
+        })}
+        {/* Centro: meta + dado */}
+        <div style={{ gridColumn: `2 / ${cols}`, gridRow: `2 / ${filas}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+          <div style={{ fontSize: 9, color: C.textMuted, letterSpacing: 2 }}>LA CARRERA</div>
+          <div style={{ width: 44, height: 44, background: "#fff", color: "#111", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 900, animation: rolling ? "rr-shake 0.3s ease infinite" : "none", boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>{dado || "🎲"}</div>
+          <div style={{ fontSize: 8, color: C.textMuted }}>{rolling ? "corriendo..." : "🎯 sal de la carrera"}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Avatar({ position, profileEmoji, energia }) {
   const positions = { casa: "8%", trabajo: "50%", tienda: "84%", durmiendo: "8%" };
@@ -1181,6 +1246,9 @@ export default function RatRaceGame() {
   const [energia, setEnergia] = useState({ actual: 100, max: 100 });
   const [ciclo, setCiclo] = useState(0);
   const [avatarPos, setAvatarPos] = useState("casa");
+  const [boardPos, setBoardPos] = useState(0);   // casilla actual en el tablero
+  const [dado, setDado] = useState(null);          // valor del dado
+  const [rolling, setRolling] = useState(false);   // animación de movimiento
   const [evento, setEvento] = useState(null);
   const [log, setLog] = useState([]);
   const [mentorTip, setMentorTip] = useState(null);
@@ -1321,6 +1389,7 @@ export default function RatRaceGame() {
     setCiclo(0); setLog([]); setSeguimientos([]); setOutcome(null);
     setExperiencia(0); setPuntosMaestria(0); setCredito(20); setPertenencias([]);
     setActiveRama(p.ramaAfin || (p.ramasPermitidas && p.ramasPermitidas[0]) || "finanzas");
+    setBoardPos(0); setDado(null); setRolling(false);
     winRecordedRef.current = false; setMiEntradaId(null);
     setScreen("game");
     sfx("click");
@@ -1356,6 +1425,7 @@ export default function RatRaceGame() {
       setDominios(dom);
       const perms = data.profile && data.profile.ramasPermitidas;
       setActiveRama((data.profile && data.profile.ramaAfin) || (perms && perms[0]) || "finanzas");
+      setBoardPos(0); setDado(null); setRolling(false);
       winRecordedRef.current = false; setMiEntradaId(null);
       setScreen("game"); sfx("click");
     } catch {}
@@ -1408,12 +1478,8 @@ export default function RatRaceGame() {
 
     setCiclo(c => c + 1);
 
-    const positions = ["casa", "trabajo", "tienda", "casa"];
-    let i = 0;
-    const iv = setInterval(() => { setAvatarPos(positions[i % positions.length]); i++; if (i >= positions.length) clearInterval(iv); }, 500);
-
-    // Always trigger an event — weighted by skills and context
-    const elegirEvento = (fin, eng) => {
+    // Always trigger an event — weighted by skills, context y la casilla donde caes
+    const elegirEvento = (fin, eng, biasTipos = []) => {
       // Solo eventos universales o exclusivos de TU perfil
       const DISP = EVENTOS.filter(e => !e.soloPerfil || e.soloPerfil === profile.id);
       // Categorize events by type for weighted selection
@@ -1446,22 +1512,41 @@ export default function RatRaceGame() {
         const descansos = DISP.filter(e => e.tipo === "descanso");
         descansos.forEach(e => { pool.push(e); pool.push(e); pool.push(e); });
       }
+      // Sesgo de la casilla del tablero donde caíste
+      if (biasTipos && biasTipos.length) {
+        DISP.filter(e => biasTipos.includes(e.tipo) && (!e.requiereHabilidad || habilidades.includes(e.requiereHabilidad)))
+          .forEach(e => { pool.push(e); pool.push(e); pool.push(e); });
+      }
 
       return pool[Math.floor(Math.random() * pool.length)];
     };
 
-    setTimeout(() => {
-      setFinances(fin => {
-        setEnergia(eng => {
-          const selected = elegirEvento(fin, eng);
-          setEvento(selected);
-          sfx("coin");
-          checkMentor(fin, eng, pertenencias);
-          return eng;
+    // 🎲 Tira el dado y mueve la ficha por el tablero, casilla por casilla.
+    const d = 1 + Math.floor(Math.random() * 6);
+    setDado(d);
+    setRolling(true);
+    const inicio = boardPos;
+    let pasos = 0;
+    const iv = setInterval(() => {
+      pasos++;
+      const np = (inicio + pasos) % CASILLAS.length;
+      setBoardPos(np);
+      sfx("click");
+      if (pasos >= d) {
+        clearInterval(iv);
+        setRolling(false);
+        const bias = (TIPOS_CASILLA[CASILLAS[np]] || {}).bias || [];
+        setFinances(fin => {
+          setEnergia(eng => {
+            setEvento(elegirEvento(fin, eng, bias));
+            sfx("coin");
+            checkMentor(fin, eng, pertenencias);
+            return eng;
+          });
+          return fin;
         });
-        return fin;
-      });
-    }, 900);
+      }
+    }, 170);
 
     addLog(`${getCicloLabel(profile.ciclo)} ${ciclo + 1} avanzado`, "success");
   };
@@ -2076,7 +2161,7 @@ export default function RatRaceGame() {
       </div>
 
       <div style={{ padding: 14 }}>
-        <Avatar position={avatarPos} profileEmoji={profile.emoji} energia={energia} />
+        <Tablero pos={boardPos} dado={dado} rolling={rolling} tired={energia.actual < 30} profileEmoji={profile.emoji} />
         {mentorTip && <MentorTip tip={mentorTip} onClose={() => setMentorTip(null)} />}
 
         {/* Controles rápidos: consejo del mentor y sonido */}
@@ -2443,13 +2528,13 @@ export default function RatRaceGame() {
           <button onClick={descansar} style={{ background: C.surface, color: energia.actual < 50 ? C.yellow : C.textSecondary, border: `1px solid ${energia.actual < 50 ? C.yellow + "66" : C.border}`, borderRadius: 14, padding: "13px 8px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
             😴 Descansar
           </button>
-          <button onClick={avanzarCiclo} disabled={energia.actual <= 0} style={{
-            background: energia.actual <= 0 ? C.border : `linear-gradient(135deg, ${C.purple}, #9333EA)`,
-            color: energia.actual <= 0 ? C.textMuted : "white",
+          <button onClick={avanzarCiclo} disabled={energia.actual <= 0 || rolling} style={{
+            background: (energia.actual <= 0 || rolling) ? C.border : `linear-gradient(135deg, ${C.purple}, #9333EA)`,
+            color: (energia.actual <= 0 || rolling) ? C.textMuted : "white",
             border: "none", borderRadius: 14, padding: 13, fontSize: 14, fontWeight: 700,
-            cursor: energia.actual <= 0 ? "not-allowed" : "pointer"
+            cursor: (energia.actual <= 0 || rolling) ? "not-allowed" : "pointer"
           }}>
-            {energia.actual <= 0 ? "Sin energía — descansa" : `Avanzar ${getCicloLabel(profile.ciclo)} →`}
+            {rolling ? "🎲 corriendo..." : energia.actual <= 0 ? "Sin energía — descansa" : `🎲 Avanzar ${getCicloLabel(profile.ciclo)} →`}
           </button>
         </div>
       </div>
