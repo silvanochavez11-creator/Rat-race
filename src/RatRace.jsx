@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 // ============================================================
 // DESIGN TOKENS
@@ -91,6 +91,33 @@ const SKILL_TREE = {
       { id: "clinica", nombre: "Clínica con doctores", costo: 12000, energiaCosto: 35, descripcion: "Contratas doctores: tu clínica trabaja por ti.", requiere: "consultorio_propio", ingresoPasivo: 3800 },
       { id: "hospital", nombre: "Cadena / Hospital", costo: 20000, energiaCosto: 45, descripcion: "Escalas a hospital o cadena de clínicas.", requiere: "clinica", ingresoPasivo: 6500 },
     ]
+  },
+  corporativo: {
+    label: "Corporativo", icon: "💼", color: "#60A5FA",
+    skills: [
+      { id: "gestion_tiempo", nombre: "Gestión del tiempo", costo: 1200, energiaCosto: 12, descripcion: "Productividad para destacar y ganar ascensos.", requiere: null, ingresoMensual: 1000 },
+      { id: "excel_reportes", nombre: "Excel y reportes", costo: 1000, energiaCosto: 10, descripcion: "Herramienta corporativa clave para crecer.", requiere: null, ingresoMensual: 700 },
+      { id: "liderazgo", nombre: "Liderazgo", costo: 2800, energiaCosto: 22, descripcion: "Coordinas equipos y abres la puerta a dirigir.", requiere: "gestion_tiempo", ingresoMensual: 1800 },
+      { id: "trabajo_remoto", nombre: "Trabajo remoto", costo: 1500, energiaCosto: 10, descripcion: "Trabajas desde casa: bajan tus gastos de transporte.", requiere: null, gastoReduce: 900 },
+    ]
+  },
+  freelance: {
+    label: "Freelance", icon: "🧑‍💻", color: "#FB923C",
+    skills: [
+      { id: "propuestas_comerciales", nombre: "Propuestas comerciales", costo: 1500, energiaCosto: 14, descripcion: "Cierras más clientes con mejores propuestas.", requiere: null },
+      { id: "gestion_proyectos", nombre: "Gestión de proyectos", costo: 2200, energiaCosto: 18, descripcion: "Llevas varios clientes a la vez: más ingreso.", requiere: null, ingresoMensual: 1600 },
+      { id: "productividad", nombre: "Productividad", costo: 1800, energiaCosto: 12, descripcion: "Rindes más con menos: cada ciclo te cansa menos.", requiere: null },
+      { id: "automatizacion", nombre: "Automatización", costo: 4000, energiaCosto: 28, descripcion: "Automatizas tareas: pequeño ingreso pasivo.", requiere: "gestion_proyectos", ingresoPasivo: 900 },
+    ]
+  },
+  basico: {
+    label: "Básico", icon: "🌱", color: "#34D399",
+    skills: [
+      { id: "tutorias", nombre: "Tutorías", costo: 300, energiaCosto: 10, descripcion: "Das clases por hora: ingreso sin capital.", requiere: null, ingresoMensual: 800 },
+      { id: "reventa", nombre: "Reventa / Marketplace", costo: 400, energiaCosto: 12, descripcion: "Compras y revendes: ingreso extra.", requiere: null, ingresoMensual: 600 },
+      { id: "idiomas", nombre: "Idiomas (inglés)", costo: 1500, energiaCosto: 16, descripcion: "Abres la puerta a clientes internacionales.", requiere: null },
+      { id: "contenido_digital", nombre: "Contenido digital", costo: 800, energiaCosto: 14, descripcion: "TikTok/YouTube: pequeño ingreso pasivo.", requiere: "reventa", ingresoPasivo: 500 },
+    ]
   } };
 
 // ============================================================
@@ -102,7 +129,8 @@ const PROFILES = [
     description: "Sin trabajo, sin deudas. Empiezas vendiendo lo que puedes.",
     stats: { carisma: 2, conocimiento: 3, red: 1 },
     habilidades: [],
-    ramaAfin: "finanzas",
+    ramaAfin: "basico",
+    ramasPermitidas: ["basico", "oficios", "construccion", "digital", "ventas", "finanzas"],
     finances: { dinero: 800, ingresoMensual: 0, gastosMensuales: 1200, deudas: 0, activosPasivos: 0 },
     energia: { actual: 60, max: 100 },
     ciclo: "diario", dificultad: "Extremo", color: C.purple
@@ -112,7 +140,8 @@ const PROFILES = [
     description: "Ingresos irregulares, gastos fijos. Ya tienes habilidades digitales.",
     stats: { carisma: 3, conocimiento: 4, red: 2 },
     habilidades: ["redes_sociales", "diseno"],
-    ramaAfin: "digital",
+    ramaAfin: "freelance",
+    ramasPermitidas: ["freelance", "digital", "ventas", "finanzas", "negocios"],
     finances: { dinero: 5000, ingresoMensual: 8000, gastosMensuales: 6500, deudas: 15000, activosPasivos: 0 },
     energia: { actual: 75, max: 100 },
     ciclo: "semanal", dificultad: "Difícil", color: C.orange
@@ -122,7 +151,8 @@ const PROFILES = [
     description: "Sueldo fijo quincenal. Estable, pero atrapado en la rutina.",
     stats: { carisma: 3, conocimiento: 3, red: 3 },
     habilidades: ["atencion_cliente", "ventas_basicas"],
-    ramaAfin: "ventas",
+    ramaAfin: "corporativo",
+    ramasPermitidas: ["corporativo", "ventas", "digital", "finanzas", "negocios"],
     finances: { dinero: 8000, ingresoMensual: 14000, gastosMensuales: 11000, deudas: 35000, activosPasivos: 0 },
     energia: { actual: 70, max: 100 },
     ciclo: "quincenal", dificultad: "Medio", color: C.blue
@@ -133,6 +163,7 @@ const PROFILES = [
     stats: { carisma: 4, conocimiento: 5, red: 4 },
     habilidades: ["medicina_general", "presupuesto"],
     ramaAfin: "salud",
+    ramasPermitidas: ["salud", "finanzas", "ventas", "negocios"],
     finances: { dinero: 20000, ingresoMensual: 45000, gastosMensuales: 38000, deudas: 180000, activosPasivos: 0 },
     energia: { actual: 65, max: 100 },
     ciclo: "mensual", dificultad: "Fácil", color: C.green
@@ -187,7 +218,22 @@ const EVENTOS = [
   { id: "m1", tipo: "chamba", titulo: "Consulta urgente", descripcion: "Un paciente necesita atención médica de inmediato.", opciones: ["Atender $1,500", "Rechazar", "Consulta premium $2,800"], impacto: [{ dinero: 1500, energia: -20 }, { dinero: 0, energia: 0 }, { dinero: 2800, energia: -30 }], emoji: "🩺", requiereHabilidad: "medicina_general" },
   { id: "m2", tipo: "chamba", titulo: "Guardia nocturna", descripcion: "Te ofrecen cubrir una guardia en el hospital esta noche.", opciones: ["Cubrir guardia $3,000", "No puedes", "Doble guardia $5,500"], impacto: [{ dinero: 3000, energia: -35 }, { dinero: 0, energia: 0 }, { dinero: 5500, energia: -50 }], emoji: "🌙", requiereHabilidad: "medicina_general" },
   { id: "m3", tipo: "oportunidad", titulo: "Cirugía programada", descripcion: "Te asignan una cirugía importante y bien pagada.", opciones: ["Operar", "Rechazar", "Negociar honorarios"], impacto: [{ dinero: 18000, energia: -40 }, { dinero: 0, energia: 0 }, { dinero: 26000, energia: -50 }], emoji: "🔪", requiereHabilidad: "cirugia" },
-  { id: "m4", tipo: "oportunidad", titulo: "Consultoría médica", descripcion: "Una aseguradora quiere contratar tu especialidad como asesor.", opciones: ["Presentar propuesta", "Rechazar", "Negociar contrato anual"], impacto: [{ dinero: 6000, ingreso: 2500, energia: -25 }, { dinero: 0, energia: 0 }, { dinero: 9000, ingreso: 4000, energia: -35 }], emoji: "📋", requiereHabilidad: "especialidad" }, ];
+  { id: "m4", tipo: "oportunidad", titulo: "Consultoría médica", descripcion: "Una aseguradora quiere contratar tu especialidad como asesor.", opciones: ["Presentar propuesta", "Rechazar", "Negociar contrato anual"], impacto: [{ dinero: 6000, ingreso: 2500, energia: -25 }, { dinero: 0, energia: 0 }, { dinero: 9000, ingreso: 4000, energia: -35 }], emoji: "📋", requiereHabilidad: "especialidad" },
+  // === Eventos exclusivos del EMPLEADO ===
+  { id: "emp1", soloPerfil: "empleado", tipo: "oportunidad", titulo: "Aumento de sueldo", descripcion: "Es momento de pedir un aumento. ¿Cómo lo negocias?", opciones: ["Pedir aumento (+ingreso)", "Conformarte", "Negociar fuerte"], impacto: [{ ingreso: 1500, energia: -10 }, { energia: 0 }, { ingreso: 3000, energia: -20 }], emoji: "💹", requiereHabilidad: null },
+  { id: "emp2", soloPerfil: "empleado", tipo: "oportunidad", titulo: "Ascenso disponible", descripcion: "Se abrió un puesto de jefatura. Tu liderazgo te respalda.", opciones: ["Aceptar el ascenso", "Rechazar", "Negociar el paquete"], impacto: [{ ingreso: 4000, energia: -20 }, { energia: 0 }, { ingreso: 6000, energia: -30 }], emoji: "📈", requiereHabilidad: "liderazgo" },
+  { id: "emp3", soloPerfil: "empleado", tipo: "black_swan", titulo: "Reducción de personal", descripcion: "La empresa recorta. Tu ingreso peligra.", opciones: ["Asumir recorte (-ingreso)", "Buscar otra área", "Renunciar con liquidación"], impacto: [{ ingreso: -2500, energia: -15 }, { energia: -20 }, { ingreso: -6000, dinero: 8000, energia: -10 }], emoji: "📉", requiereHabilidad: null },
+  { id: "emp4", soloPerfil: "empleado", tipo: "chamba", titulo: "Trabajo extra en otra empresa", descripcion: "Te ofrecen un turno extra de medio tiempo (moonlighting).", opciones: ["Tomar turno $2,000", "Descansar", "Doble turno $3,500"], impacto: [{ dinero: 2000, energia: -25 }, { energia: 20 }, { dinero: 3500, energia: -40 }], emoji: "🌜", requiereHabilidad: null },
+  // === Eventos exclusivos del FREELANCER ===
+  { id: "fre1", soloPerfil: "freelancer", tipo: "black_swan", titulo: "Cliente que no paga", descripcion: "Entregaste el trabajo y el cliente desapareció.", opciones: ["Asumir pérdida", "Cobrar con recargo", "Mandar a cobranza"], impacto: [{ dinero: -2500, energia: -10 }, { dinero: 1500, energia: -20 }, { energia: -15 }], emoji: "🧾", requiereHabilidad: null },
+  { id: "fre2", soloPerfil: "freelancer", tipo: "oportunidad", titulo: "Contrato de retainer", descripcion: "Un cliente quiere pagarte mensual fijo por tus servicios.", opciones: ["Aceptar retainer", "Rechazar", "Negociar mejor"], impacto: [{ ingreso: 3000, energia: -15 }, { energia: 0 }, { ingreso: 4500, energia: -25 }], emoji: "📆", requiereHabilidad: null },
+  { id: "fre3", soloPerfil: "freelancer", tipo: "oportunidad", titulo: "Cliente internacional (USD)", descripcion: "Un cliente del extranjero paga en dólares. ¡El tipo de cambio ayuda!", opciones: ["Tomar proyecto $7,000", "Rechazar", "Proyecto grande $12,000"], impacto: [{ dinero: 7000, energia: -25 }, { energia: 0 }, { dinero: 12000, energia: -40 }], emoji: "🌎", requiereHabilidad: null },
+  { id: "fre4", soloPerfil: "freelancer", tipo: "black_swan", titulo: "Burn out", descripcion: "El exceso de trabajo te pasó factura. Necesitas parar.", opciones: ["Descanso forzado", "Seguir igual (riesgo)", "Terapia $1,500"], impacto: [{ ingreso: -1500, energia: 25 }, { energia: -30, ingreso: -2000 }, { dinero: -1500, energia: 15 }], emoji: "🔥", requiereHabilidad: null },
+  // === Eventos exclusivos del ESTUDIANTE ===
+  { id: "est1", soloPerfil: "estudiante", tipo: "oportunidad", titulo: "Beca o apoyo", descripcion: "Sale una beca o apoyo gubernamental. ¡Dinero sin deuda!", opciones: ["Recibir beca $2,000", "No calificas", "Beca grande $3,500"], impacto: [{ dinero: 2000, energia: 5 }, { energia: 0 }, { dinero: 3500, energia: -5 }], emoji: "🎓", requiereHabilidad: null },
+  { id: "est2", soloPerfil: "estudiante", tipo: "black_swan", titulo: "Examen reprobado", descripcion: "Reprobaste una materia. Toca recuperar tiempo y energía.", opciones: ["Estudiar duro", "Aceptarlo", "Pagar curso $1,000"], impacto: [{ energia: -25 }, { energia: -10 }, { dinero: -1000, energia: 5 }], emoji: "📕", requiereHabilidad: null },
+  { id: "est3", soloPerfil: "estudiante", tipo: "chamba", titulo: "Amigo con negocio", descripcion: "Un amigo te invita a trabajar o asociarte en su negocio.", opciones: ["Trabajar informal $900", "Pasar", "Asociarte $2,000"], impacto: [{ dinero: 900, energia: -20 }, { energia: 0 }, { dinero: -2000, ingreso: 1200, energia: -15 }], emoji: "🤝", requiereHabilidad: null },
+  { id: "est4", soloPerfil: "estudiante", tipo: "chamba", titulo: "Tu primera venta", descripcion: "¡Hiciste tu primera venta! Pequeña, pero te da confianza y experiencia.", opciones: ["¡Celebrarlo!", "Restarle importancia", "Reinvertir las ganancias"], impacto: [{ dinero: 500, energia: 10 }, { energia: 0 }, { dinero: 300, ingreso: 400, energia: -5 }], emoji: "🎉", requiereHabilidad: null }, ];
 
 // ============================================================
 // OBJECTION / NEGOTIATION SYSTEM
@@ -295,7 +341,7 @@ const OUTCOMES = {
   // Client negotiation outcomes
   cliente_potencial: {
     stat: "carisma", // which skill tree affects odds
-    habilidadBonus: { ventas_basicas: 15, cierre: 20, negociacion: 25 },
+    habilidadBonus: { ventas_basicas: 15, cierre: 20, negociacion: 25, propuestas_comerciales: 18, idiomas: 12 },
     resultados: [
       {
         tipo: "ganado",
@@ -337,7 +383,7 @@ const OUTCOMES = {
   },
   contrato_grande: {
     stat: "carisma",
-    habilidadBonus: { cierre: 20, negociacion: 30, marketing: 15, maestro_obra: 25, agencia_marketing: 25, escalar_negocio: 30, cirugia: 35, especialidad: 25 },
+    habilidadBonus: { cierre: 20, negociacion: 30, marketing: 15, maestro_obra: 25, agencia_marketing: 25, escalar_negocio: 30, cirugia: 35, especialidad: 25, propuestas_comerciales: 15, liderazgo: 18 },
     resultados: [
       {
         tipo: "ganado",
@@ -721,9 +767,16 @@ const playSound = (tipo) => {
 // Animaciones CSS (se inyectan una sola vez)
 const ANIMACIONES_CSS = `
 @keyframes rr-slidein { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
-@keyframes rr-pop { 0% { transform: scale(0.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes rr-pop { 0% { transform: scale(0.7); opacity: 0; } 60% { transform: scale(1.04); opacity: 1; } 100% { transform: scale(1); } }
 @keyframes rr-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,77,106,0.5); } 50% { box-shadow: 0 0 0 6px rgba(255,77,106,0); } }
 @keyframes rr-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes rr-floatup { 0% { opacity: 0; transform: translateY(0) scale(0.9); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-42px) scale(1.05); } }
+@keyframes rr-shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+@keyframes rr-flash { 0%,100% { filter: brightness(1); } 50% { filter: brightness(2.2); } }
+@keyframes rr-glow { 0%,100% { box-shadow: 0 0 0 0 rgba(0,229,160,0.0); } 50% { box-shadow: 0 0 12px 2px rgba(0,229,160,0.7); } }
+/* Microinteracción: todos los botones se hunden al presionar */
+button { transition: transform 0.06s ease, filter 0.15s ease; }
+button:active:not(:disabled) { transform: scale(0.95); }
 `;
 
 // Clave para guardar la partida en el navegador (localStorage)
@@ -803,7 +856,7 @@ function EventModal({ evento, onChoice, habilidades, energia }) {
   const tipoLabel = { black_swan: "⚠️ EVENTO CRÍTICO", gasto: "GASTO INESPERADO", chamba: "CHAMBA DISPONIBLE", oportunidad: "OPORTUNIDAD", inversion: "INVERSIÓN", descanso: "TIEMPO LIBRE", inmueble: "🏠 OPORTUNIDAD INMOBILIARIA" }[evento.tipo];
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 24, maxWidth: 380, width: "100%" }}>
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 24, maxWidth: 380, width: "100%", animation: "rr-pop 0.25s ease" }}>
         <div style={{ fontSize: 44, textAlign: "center", marginBottom: 10 }}>{evento.emoji}</div>
         <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 2, color: tipoColor, marginBottom: 6, textAlign: "center" }}>{tipoLabel}</div>
         <h3 style={{ color: C.textPrimary, fontSize: 18, fontWeight: 800, textAlign: "center", marginBottom: 8 }}>{evento.titulo}</h3>
@@ -866,7 +919,7 @@ function ObjecionModal({ objecion, habilidades, onResult }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.93)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 120, padding: 16, overflowY: "auto" }}>
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, maxWidth: 390, width: "100%", overflow: "hidden", margin: "auto" }}>
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, maxWidth: 390, width: "100%", overflow: "hidden", margin: "auto", animation: "rr-pop 0.25s ease" }}>
 
         {!mostrarLeccion ? (
           <>
@@ -966,7 +1019,7 @@ function OutcomeModal({ outcome, onClose }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150, padding: 16 }}>
-      <div style={{ background: C.card, border: `1px solid ${cfg.border}55`, borderRadius: 22, maxWidth: 380, width: "100%", overflow: "hidden" }}>
+      <div style={{ background: C.card, border: `1px solid ${cfg.border}55`, borderRadius: 22, maxWidth: 380, width: "100%", overflow: "hidden", animation: "rr-pop 0.25s ease" }}>
         {/* Header */}
         <div style={{ background: cfg.bg, padding: "24px 24px 20px", textAlign: "center", borderBottom: `1px solid ${cfg.border}33` }}>
           <div style={{ fontSize: 48, marginBottom: 10 }}>{outcome.emoji}</div>
@@ -1087,6 +1140,41 @@ export default function RatRaceGame() {
   const [objecion, setObjecion] = useState(null);   // diálogo de negociación activo
   const [negPend, setNegPend] = useState(null);      // trato pendiente de resolver tras negociar
   const [inquilino, setInquilino] = useState(null);   // negociación con inquilino al rentar
+  const [floaters, setFloaters] = useState([]);       // números flotantes (+/− dinero)
+  const [shakeMoney, setShakeMoney] = useState(0);    // contador para animar shake al perder dinero
+  const [levelFlash, setLevelFlash] = useState(0);    // flash al subir de nivel
+  const [cyclePulse, setCyclePulse] = useState(0);    // pulso del flujo al avanzar ciclo
+  const dineroPrevRef = useRef(null);
+  const nivelPrevRef = useRef(1);
+  const floaterId = useRef(0);
+
+  // Número flotante "+$X" / "-$X"
+  const flotante = (text, color) => {
+    const id = ++floaterId.current;
+    setFloaters(prev => [...prev.slice(-4), { id, text, color }]);
+    setTimeout(() => setFloaters(prev => prev.filter(f => f.id !== id)), 1100);
+  };
+
+  // Detecta cambios de dinero → lanza número flotante (y shake si pierdes).
+  useEffect(() => {
+    if (!finances) { dineroPrevRef.current = null; return; }
+    const prev = dineroPrevRef.current;
+    if (prev != null && finances.dinero !== prev) {
+      const delta = Math.round(finances.dinero - prev);
+      if (Math.abs(delta) >= 1) {
+        flotante((delta > 0 ? "+" : "−") + fmt(Math.abs(delta)), delta > 0 ? C.green : C.red);
+        if (delta < 0) setShakeMoney(s => s + 1);
+      }
+    }
+    dineroPrevRef.current = finances.dinero;
+  }, [finances && finances.dinero]);
+
+  // Detecta subida de nivel de experiencia → flash.
+  useEffect(() => {
+    const n = expNivel(experiencia);
+    if (n > nivelPrevRef.current) setLevelFlash(f => f + 1);
+    nivelPrevRef.current = n;
+  }, [experiencia]);
 
   // Mantener el flag de sonido sincronizado con el estado de "muted"
   useEffect(() => { setSoundOn(!muted); try { localStorage.setItem("ratrace_muted", muted ? "1" : "0"); } catch {} }, [muted]);
@@ -1144,7 +1232,9 @@ export default function RatRaceGame() {
     const dom0 = {}; p.habilidades.forEach(id => { dom0[id] = 1; });
     setDominios(dom0);
     setCiclo(0); setLog([]); setSeguimientos([]); setOutcome(null);
-    setExperiencia(0); setPuntosMaestria(0); setCredito(20); setPertenencias([]); setScreen("game");
+    setExperiencia(0); setPuntosMaestria(0); setCredito(20); setPertenencias([]);
+    setActiveRama(p.ramaAfin || (p.ramasPermitidas && p.ramasPermitidas[0]) || "finanzas");
+    setScreen("game");
     sfx("click");
   };
 
@@ -1175,6 +1265,8 @@ export default function RatRaceGame() {
       // Compatibilidad: si una partida vieja no tiene maestrías, las creamos en 1.
       const dom = data.dominios || {}; (data.habilidades || []).forEach(id => { if (!dom[id]) dom[id] = 1; });
       setDominios(dom);
+      const perms = data.profile && data.profile.ramasPermitidas;
+      setActiveRama((data.profile && data.profile.ramaAfin) || (perms && perms[0]) || "finanzas");
       setScreen("game"); sfx("click");
     } catch {}
   };
@@ -1184,6 +1276,7 @@ export default function RatRaceGame() {
   const avanzarCiclo = () => {
     if (energia.actual <= 0) { showNotif("Sin energía — debes descansar", C.red); return; }
     sfx("click");
+    setCyclePulse(p => p + 1);
 
     setFinances(prev => {
       const nuevo = { ...prev };
@@ -1214,7 +1307,8 @@ export default function RatRaceGame() {
     setCredito(c => Math.min(100, c + (totalDeuda(finances) > 0 ? 1.2 : 0.4)));
 
     setEnergia(prev => {
-      const perdida = profile.ciclo === "diario" ? 15 : profile.ciclo === "semanal" ? 20 : profile.ciclo === "quincenal" ? 25 : 30;
+      let perdida = profile.ciclo === "diario" ? 15 : profile.ciclo === "semanal" ? 20 : profile.ciclo === "quincenal" ? 25 : 30;
+      if (habilidades.includes("productividad")) perdida = Math.round(perdida * 0.8);  // rindes más con menos
       const nueva = Math.max(0, prev.actual - perdida);
       return { ...prev, actual: nueva };
     });
@@ -1227,10 +1321,12 @@ export default function RatRaceGame() {
 
     // Always trigger an event — weighted by skills and context
     const elegirEvento = (fin, eng) => {
+      // Solo eventos universales o exclusivos de TU perfil
+      const DISP = EVENTOS.filter(e => !e.soloPerfil || e.soloPerfil === profile.id);
       // Categorize events by type for weighted selection
-      const conHabilidad = EVENTOS.filter(e => e.requiereHabilidad && habilidades.includes(e.requiereHabilidad));
-      const sinHabilidad = EVENTOS.filter(e => !e.requiereHabilidad);
-      const sinSkillPeroVisible = EVENTOS.filter(e => e.requiereHabilidad && !habilidades.includes(e.requiereHabilidad));
+      const conHabilidad = DISP.filter(e => e.requiereHabilidad && habilidades.includes(e.requiereHabilidad));
+      const sinHabilidad = DISP.filter(e => !e.requiereHabilidad);
+      const sinSkillPeroVisible = DISP.filter(e => e.requiereHabilidad && !habilidades.includes(e.requiereHabilidad));
 
       // Build weighted pool
       let pool = [];
@@ -1245,11 +1341,11 @@ export default function RatRaceGame() {
 
       // Context overrides: low money → more gasto/chamba, low energy → descanso
       if (fin.dinero < fin.gastosMensuales * 0.3) {
-        const urgentes = EVENTOS.filter(e => e.tipo === "chamba" && (!e.requiereHabilidad || habilidades.includes(e.requiereHabilidad)));
+        const urgentes = DISP.filter(e => e.tipo === "chamba" && (!e.requiereHabilidad || habilidades.includes(e.requiereHabilidad)));
         urgentes.forEach(e => { pool.push(e); pool.push(e); });
       }
       if (eng.actual < 30) {
-        const descansos = EVENTOS.filter(e => e.tipo === "descanso");
+        const descansos = DISP.filter(e => e.tipo === "descanso");
         descansos.forEach(e => { pool.push(e); pool.push(e); pool.push(e); });
       }
 
@@ -1400,14 +1496,18 @@ export default function RatRaceGame() {
     if (finances.dinero < costo) { showNotif("Sin dinero suficiente", C.red); return; }
     if (energia.actual < skill.energiaCosto) { showNotif("Sin energía suficiente", C.yellow); return; }
     if (habilidades.includes(skill.id)) { showNotif("Ya tienes esta habilidad", C.yellow); return; }
-    // Algunas habilidades forman una empresa (ingreso pasivo) o atraen clientes (ingreso mensual).
-    setFinances(prev => ({ ...prev, dinero: prev.dinero - costo, activosPasivos: prev.activosPasivos + (skill.ingresoPasivo || 0), ingresoMensual: prev.ingresoMensual + (skill.ingresoMensual || 0) }));
+    // Algunas habilidades forman una empresa (ingreso pasivo), atraen clientes (ingreso
+    // mensual) o reducen tus gastos fijos (p. ej. trabajo remoto baja el transporte).
+    setFinances(prev => ({ ...prev, dinero: prev.dinero - costo,
+      activosPasivos: prev.activosPasivos + (skill.ingresoPasivo || 0),
+      ingresoMensual: prev.ingresoMensual + (skill.ingresoMensual || 0),
+      gastosMensuales: Math.max(0, prev.gastosMensuales - (skill.gastoReduce || 0)) }));
     setEnergia(prev => ({ ...prev, actual: Math.max(0, prev.actual - skill.energiaCosto) }));
     setHabilidades(prev => [...prev, skill.id]);
     setDominios(prev => ({ ...prev, [skill.id]: 1 }));   // empieza con maestría 1
-    const extra = skill.ingresoPasivo ? ` (+${fmt(skill.ingresoPasivo)}/mes pasivo)` : skill.ingresoMensual ? ` (+${fmt(skill.ingresoMensual)}/mes en clientes)` : "";
+    const extra = skill.ingresoPasivo ? ` (+${fmt(skill.ingresoPasivo)}/mes pasivo)` : skill.ingresoMensual ? ` (+${fmt(skill.ingresoMensual)}/mes en clientes)` : skill.gastoReduce ? ` (−${fmt(skill.gastoReduce)}/mes de gastos)` : "";
     addLog(`${skill.ingresoPasivo ? "Formaste un negocio" : "Aprendiste"}: ${skill.nombre}${extra}`, "success");
-    showNotif(skill.ingresoPasivo ? `🏢 Negocio creado:${extra}` : skill.ingresoMensual ? `📣 Clientes nuevos:${extra}` : `✓ ${skill.nombre} desbloqueada`, C.green);
+    showNotif(skill.ingresoPasivo ? `🏢 Negocio creado:${extra}` : skill.ingresoMensual ? `📣 Clientes nuevos:${extra}` : skill.gastoReduce ? `🏠 Menos gastos:${extra}` : `✓ ${skill.nombre} desbloqueada`, C.green);
     sfx("success");
   };
 
@@ -1767,13 +1867,19 @@ export default function RatRaceGame() {
       {/* Header */}
       <div style={{ background: C.surface, padding: "14px 18px", borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-          <div>
+          <div style={{ position: "relative" }}>
             <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 2 }}>{profile.name}</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: C.textPrimary, letterSpacing: -0.5 }}>{fmt(finances.dinero)}</div>
+            <div key={shakeMoney} style={{ fontSize: 22, fontWeight: 900, color: C.textPrimary, letterSpacing: -0.5, animation: shakeMoney ? "rr-shake 0.4s ease" : "none" }}>{fmt(finances.dinero)}</div>
+            {/* Números flotantes +/- dinero */}
+            <div style={{ position: "absolute", left: 0, top: 14, pointerEvents: "none" }}>
+              {floaters.map((f, i) => (
+                <div key={f.id} style={{ position: "absolute", left: i * 4, top: 0, color: f.color, fontWeight: 800, fontSize: 14, whiteSpace: "nowrap", animation: "rr-floatup 1.1s ease forwards" }}>{f.text}</div>
+              ))}
+            </div>
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 2 }}>{getCicloLabel(profile.ciclo)} {ciclo}</div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: flujoMensual >= 0 ? C.green : C.red }}>
+            <div key={cyclePulse} style={{ fontSize: 14, fontWeight: 700, color: flujoMensual >= 0 ? C.green : C.red, display: "inline-block", animation: cyclePulse && flujoMensual >= 0 ? "rr-pop 0.5s ease" : "none" }}>
               {flujoMensual >= 0 ? "+" : ""}{fmt(flujoMensual)}/mes
             </div>
           </div>
@@ -1784,7 +1890,7 @@ export default function RatRaceGame() {
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.textSecondary, marginBottom: 3 }}>
               <span>🏆 Libertad</span><span>{Math.round(progreso)}%</span>
             </div>
-            <div style={{ background: C.border, borderRadius: 99, height: 5, overflow: "hidden" }}>
+            <div style={{ background: C.border, borderRadius: 99, height: 5, overflow: "hidden", animation: progreso > 85 ? "rr-glow 1.2s infinite" : "none" }}>
               <div style={{ width: `${progreso}%`, background: `linear-gradient(90deg, ${C.purple}, ${C.green})`, height: "100%", borderRadius: 99, transition: "width 0.5s ease" }} />
             </div>
           </div>
@@ -1796,7 +1902,7 @@ export default function RatRaceGame() {
             <span style={{ color: C.yellow }}>+{expBonusProb(experiencia)}% éxito · pagos ×{expBonusPago(experiencia).toFixed(2)}</span>
           </div>
           <div style={{ background: C.border, borderRadius: 99, height: 6, overflow: "hidden" }}>
-            <div style={{ width: `${Math.round(expProgreso(experiencia) * 100)}%`, background: `linear-gradient(90deg, ${C.orange}, ${C.yellow})`, height: "100%", borderRadius: 99, transition: "width 0.5s ease" }} />
+            <div key={levelFlash} style={{ width: `${Math.round(expProgreso(experiencia) * 100)}%`, background: `linear-gradient(90deg, ${C.orange}, ${C.yellow})`, height: "100%", borderRadius: 99, transition: "width 0.5s ease", animation: levelFlash ? "rr-flash 0.6s ease" : "none" }} />
           </div>
         </div>
         {/* Barra 2: puntos de maestría — se gastan en mejorar habilidades (independientes) */}
@@ -2081,7 +2187,7 @@ export default function RatRaceGame() {
         {activeTab === "habilidades" && (
           <div>
             <div style={{ display: "flex", gap: 6, marginBottom: 14, overflowX: "auto", paddingBottom: 4 }}>
-              {Object.entries(SKILL_TREE).map(([key, r]) => {
+              {Object.entries(SKILL_TREE).filter(([key]) => !profile.ramasPermitidas || profile.ramasPermitidas.includes(key)).map(([key, r]) => {
                 const recomendada = profile && profile.ramaAfin === key;
                 return (
                   <button key={key} onClick={() => setActiveRama(key)} style={{
@@ -2192,7 +2298,7 @@ export default function RatRaceGame() {
       {outcome && <OutcomeModal outcome={outcome} onClose={() => setOutcome(null)} />}
       {inquilino && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 130, padding: 16 }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 24, maxWidth: 380, width: "100%" }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 24, maxWidth: 380, width: "100%", animation: "rr-pop 0.25s ease" }}>
             <div style={{ fontSize: 40, textAlign: "center", marginBottom: 8 }}>🔑</div>
             <h3 style={{ color: C.textPrimary, fontSize: 17, fontWeight: 800, textAlign: "center", margin: "0 0 6px" }}>Buscar inquilino</h3>
             <p style={{ color: C.textSecondary, fontSize: 13, textAlign: "center", margin: "0 0 16px", lineHeight: 1.6 }}>

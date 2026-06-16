@@ -32,9 +32,19 @@ npm run preview  # sirve la versión de producción para probarla
   oportunidades y suben tus probabilidades. Algunas habilidades de negocio/salud
   (agencia de marketing, consultorio/clínica, escalar) **forman una empresa que
   genera ingreso pasivo** (p. ej. el doctor monta su clínica y contrata doctores).
-- **Afinidad por profesión**: cada perfil tiene una **carrera recomendada** (el
-  doctor → Salud, el freelancer → Digital, etc.) con **−25%** en esas habilidades
-  y una insignia ★ para guiarte. Así cada profesión crece en lo suyo.
+- **Habilidades por profesión**: cada perfil ve solo las **ramas que le
+  corresponden** (el doctor ya no aprende mecánica). Hay ramas nuevas: 💼
+  Corporativo (empleado), 🧑‍💻 Freelance (freelancer) y 🌱 Básico (estudiante),
+  con skills propias (gestión del tiempo, liderazgo, trabajo remoto que baja
+  gastos, propuestas, productividad, tutorías, idiomas, contenido digital...).
+- **Afinidad por profesión**: cada perfil tiene una **carrera recomendada** con
+  **−25%** en esas habilidades y una insignia ★.
+- **Eventos exclusivos por perfil**: aumento de sueldo/ascenso/recorte (empleado),
+  cliente que no paga/retainer/cliente internacional/burn out (freelancer),
+  beca/examen reprobado/primera venta (estudiante), consulta/cirugía (doctor).
+- **Animaciones**: números flotantes de dinero (+/−), shake al perder, modales
+  con scale-in, botones con press, flash al subir de nivel y pulso de la barra
+  de libertad cerca de la meta.
 - **Experiencia (nivel 1 a 10)**: sube con las semanas trabajadas y los trabajos
   hechos. A mayor nivel, **más probabilidad de éxito y mejores pagos** en contratos.
 - **Puntos de maestría** (barra independiente del nivel): se acumulan al trabajar
