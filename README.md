@@ -33,9 +33,15 @@ npm run preview  # sirve la versión de producción para probarla
   (agencia de marketing, escalar) **forman una empresa que genera ingreso pasivo**.
 - **Experiencia (nivel 1 a 10)**: sube con las semanas trabajadas y los trabajos
   hechos. A mayor nivel, **más probabilidad de éxito y mejores pagos** en contratos.
-- **Pertenencias 🏠🚗**: compra vehículos, casas y negocios. Tienen **plusvalía**
-  (las casas suben de valor, los vehículos se deprecian) y eliges si los **rentas**
-  (ingreso pasivo) o los **vendes** (efectivo). Tus habilidades aumentan la renta.
+- **Pertenencias 🏠🚗**: compra vehículos, casas, dúplex, **edificios de varias
+  unidades** y negocios. Tienen **plusvalía** (las casas suben de valor, los
+  vehículos se deprecian) y eliges si los **rentas** o los **vendes**.
+  - Cada bien añade un **mantenimiento mensual** a tus gastos (¡un bien sin rentar
+    es un pasivo!).
+  - Para rentar debes **buscar y negociar con un inquilino** (puedes intentar una
+    renta más alta según tus habilidades).
+  - Aparecen **oportunidades de inmuebles** como evento: requieren la habilidad de
+    bienes raíces y, si no tienes el dinero, puedes **financiarlas** con préstamo.
 - **Sistema de energía**: cada ciclo te cansa; descansa para no quedarte sin energía.
 - **Eventos**: chambas, oportunidades, inversiones, gastos imprevistos y hasta
   crisis económicas ("cisnes negros").

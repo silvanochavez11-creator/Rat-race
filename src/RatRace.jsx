@@ -158,7 +158,16 @@ const EVENTOS = [
   { id: "e29", tipo: "black_swan", titulo: "Crisis económica del país", descripcion: "La economía nacional se contrae: suben los precios y baja el consumo.", opciones: ["Ajustar tu presupuesto", "Buscar ingreso extra", "Aguantar (suben tus gastos)"], impacto: [{ gastos: 600, energia: -15 }, { dinero: 2000, energia: -25 }, { gastos: 1500, energia: -10 }], emoji: "🏛️", requiereHabilidad: null },
   { id: "e30", tipo: "black_swan", titulo: "Accidente: atención médica", descripcion: "Tuviste un accidente y necesitas atención médica urgente y de pago.", opciones: ["Hospital privado $7,000", "IMSS $1,500 + reposo", "Ignorar (peligroso)"], impacto: [{ dinero: -7000, energia: -15 }, { dinero: -1500, energia: -35 }, { dinero: 0, energia: -45, ingreso: -2500 }], emoji: "🚑", requiereHabilidad: null },
   { id: "e31", tipo: "gasto", titulo: "Inflación: suben tus gastos", descripcion: "El costo de la vida subió. Tus compras del mes cuestan más.", opciones: ["Reducir consumo", "Comprar a crédito", "Aguantar (gastos +$1,000/mes)"], impacto: [{ energia: -10 }, { dinero: 0, deuda: 3000, energia: -5 }, { gastos: 1000, energia: -5 }], emoji: "🛒", requiereHabilidad: null },
-  { id: "e32", tipo: "black_swan", titulo: "Subió la renta y los servicios", descripcion: "El casero subió la renta y los servicios aumentaron. Tus gastos fijos crecen.", opciones: ["Negociar con el casero", "Mudarte (gasto único)", "Aceptar el aumento"], impacto: [{ energia: -15 }, { dinero: -4000, energia: -20 }, { gastos: 1200, energia: -5 }], emoji: "🏚️", requiereHabilidad: null }, ];
+  { id: "e32", tipo: "black_swan", titulo: "Subió la renta y los servicios", descripcion: "El casero subió la renta y los servicios aumentaron. Tus gastos fijos crecen.", opciones: ["Negociar con el casero", "Mudarte (gasto único)", "Aceptar el aumento"], impacto: [{ energia: -15 }, { dinero: -4000, energia: -20 }, { gastos: 1200, energia: -5 }], emoji: "🏚️", requiereHabilidad: null },
+  { id: "e33", tipo: "gasto", titulo: "Multa de tránsito", descripcion: "Te detuvieron y debes pagar una multa.", opciones: ["Pagar $1,200", "Impugnarla (tiempo)", "Mordida $600"], impacto: [{ dinero: -1200, energia: -5 }, { energia: -15 }, { dinero: -600, energia: -8 }], emoji: "🚓", requiereHabilidad: null },
+  { id: "e34", tipo: "black_swan", titulo: "Fraude / estafa", descripcion: "Caíste en una estafa por internet. Perdiste dinero.", opciones: ["Asumir la pérdida $3,000", "Intentar recuperarlo", "Denunciar"], impacto: [{ dinero: -3000, energia: -15 }, { dinero: -1000, energia: -25 }, { energia: -20 }], emoji: "🎭", requiereHabilidad: null },
+  { id: "e35", tipo: "gasto", titulo: "Cumpleaños y compromisos", descripcion: "Mes de fiestas, regalos y compromisos sociales.", opciones: ["Gastar moderado $800", "Quedarte en casa", "Tirar la casa por la ventana $2,500"], impacto: [{ dinero: -800, energia: 10 }, { energia: 20 }, { dinero: -2500, energia: 25 }], emoji: "🎂", requiereHabilidad: null },
+  { id: "e36", tipo: "oportunidad", titulo: "Apoyo del gobierno", descripcion: "Sale un programa de apoyo o estímulo. Puedes aprovecharlo.", opciones: ["Tomar el apoyo $2,500", "No calificas", "Apoyo a negocio $4,000"], impacto: [{ dinero: 2500, energia: 0 }, { energia: 0 }, { dinero: 4000, energia: -5 }], emoji: "🎫", requiereHabilidad: null },
+  // Oportunidades de INMUEBLES (requieren la habilidad de bienes raíces; ventas ayuda con inquilinos)
+  { id: "i1", tipo: "inmueble", bienId: "casa_chica", descuento: 0.9,  titulo: "Casa en remate", descripcion: "Una casa en remate, 10% bajo precio. Necesitas bienes raíces (y ventas ayuda con inquilinos). Cómprala o finánciala.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -10 }, { energia: 0 }, { energia: -10 }], emoji: "🏠", requiereHabilidad: "bienes_raices" },
+  { id: "i2", tipo: "inmueble", bienId: "depa", descuento: 0.92, titulo: "Departamento de oportunidad", descripcion: "Departamento céntrico con descuento. Requiere bienes raíces. Págalo o finánicialo si no te alcanza.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -10 }, { energia: 0 }, { energia: -10 }], emoji: "🏢", requiereHabilidad: "bienes_raices" },
+  { id: "i3", tipo: "inmueble", bienId: "duplex", descuento: 0.9,  titulo: "Dúplex para rentar", descripcion: "Dos unidades para rentar por separado. Requiere bienes raíces. Buen flujo si consigues inquilinos.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -12 }, { energia: 0 }, { energia: -12 }], emoji: "🏘️", requiereHabilidad: "bienes_raices" },
+  { id: "i4", tipo: "inmueble", bienId: "edificio", descuento: 0.93, titulo: "Edificio en venta", descripcion: "Un edificio de 6 deptos. Gran inversión. Casi nadie lo paga de contado: financíalo y réntalo.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -15 }, { energia: 0 }, { energia: -15 }], emoji: "🏨", requiereHabilidad: "bienes_raices" }, ];
 
 // ============================================================
 // OBJECTION / NEGOTIATION SYSTEM
@@ -521,11 +530,37 @@ const MENTOR_CONSEJOS = {
     "🌱 Aún no tienes ingreso pasivo. Empieza pequeño: CETES, un fondo, una renta. Lo importante es comenzar.",
     "📚 Un empleo te da seguridad; los activos te dan libertad. Destina algo cada mes a comprar activos.",
   ],
+  mantenimientoAlto: [
+    "🧰 Tus gastos de mantenimiento crecieron con tus adquisiciones. Asegúrate de RENTAR esos bienes: si no generan renta, solo te cuestan.",
+    "🏠 Un inmueble vacío es un pasivo: paga mantenimiento sin darte renta. Consíguele inquilino o considera venderlo.",
+    "⚖️ Compra activos que pongan dinero en tu bolsillo, no que lo saquen. Cada bien debería rentar más de lo que cuesta mantener.",
+  ],
+  inmueble: [
+    "🏘️ Los bienes raíces se compran con apalancamiento: financiar a tasa baja y que la renta pague el préstamo es la jugada clásica.",
+    "🔑 Antes de comprar un inmueble, ten claro a cuánto lo rentarás. La renta debe cubrir mantenimiento Y el pago del financiamiento.",
+    "🏢 Un edificio de varias unidades diversifica tu riesgo: si una se desocupa, las otras siguen pagando.",
+  ],
+  financiar: [
+    "💳 Financiar puede acelerarte, pero la deuda buena es la que compra un activo que se paga solo. La deuda mala compra cosas que pierden valor.",
+    "📊 Si financias un inmueble, revisa que la renta supere el interés mensual del préstamo; si no, te quedas en números rojos.",
+  ],
+  cuidaEnergia: [
+    "😴 No te quemes: la energía es tu motor. Trabajar agotado rinde menos. Descansa aunque cueste un poco.",
+    "⚡ El descanso es una inversión: recuperas energía para cerrar mejores tratos.",
+  ],
+  diversifica: [
+    "🧺 No pongas todos los huevos en una canasta: combina rentas, negocios e inversiones.",
+    "🌍 Distintas fuentes de ingreso pasivo te protegen cuando una falla (un mes sin ventas, un inquilino que se va).",
+  ],
   general: [
     "🧠 Riqueza no es cuánto ganas, sino cuánto conservas y haces crecer.",
     "⏳ La paciencia es tu mejor aliada: el interés compuesto premia a quien empieza temprano y no se detiene.",
     "🎓 Aprende una habilidad nueva: sube tus probabilidades de éxito y abre mejores oportunidades.",
     "💧 Cuida los pequeños gastos: una pequeña fuga hunde un gran barco.",
+    "🏠 Compra activos (rentas, negocios) antes que lujos. Los lujos llegan solos cuando los activos los pagan.",
+    "🤝 En una negociación, quien pregunta manda. Entiende al otro antes de proponer.",
+    "📉 Prepárate para los imprevistos: un fondo de emergencia te salva de pedir prestado caro.",
+    "🚀 Reinvierte tus ganancias: un negocio que crece hoy te da libertad mañana.",
   ],
 };
 
@@ -580,12 +615,14 @@ const expBonusPago = (exp) => 1 + (expNivel(exp) - 1) * 0.03;   // hasta +27% en
 // skillRenta: habilidad que mejora su rendimiento
 // ============================================================
 const MERCADO_BIENES = [
-  { id: "moto",       tipo: "vehiculo", nombre: "Motocicleta",        emoji: "🏍️", costo: 18000,  plusvalia: -0.010, renta: 700,   skillRenta: "mecanica_basica",    desc: "Para repartos. Se deprecia, pero rentada deja flujo." },
-  { id: "auto",       tipo: "vehiculo", nombre: "Automóvil",          emoji: "🚗",  costo: 90000,  plusvalia: -0.008, renta: 2800,  skillRenta: "mecanica_basica",    desc: "Rentable para apps de transporte." },
-  { id: "camioneta",  tipo: "vehiculo", nombre: "Camioneta de carga", emoji: "🚚",  costo: 160000, plusvalia: -0.006, renta: 5000,  skillRenta: "mecanica_avanzada",  desc: "Ideal para fletes y negocio de carga." },
-  { id: "casa_chica", tipo: "casa",     nombre: "Casa pequeña",       emoji: "🏠",  costo: 130000, plusvalia: 0.012,  renta: 3800,  skillRenta: "bienes_raices",      desc: "Se revaloriza y puedes rentarla." },
-  { id: "depa",       tipo: "casa",     nombre: "Departamento",       emoji: "🏢",  costo: 220000, plusvalia: 0.015,  renta: 6500,  skillRenta: "bienes_raices",      desc: "Buena plusvalía en zona céntrica." },
-  { id: "local",      tipo: "negocio",  nombre: "Local comercial",    emoji: "🏬",  costo: 360000, plusvalia: 0.018,  renta: 13000, skillRenta: "emprendimiento",     desc: "Réntalo o monta tu propio negocio." },
+  { id: "moto",       tipo: "vehiculo", nombre: "Motocicleta",        emoji: "🏍️", costo: 18000,  plusvalia: -0.010, renta: 700,   mantenimiento: 250,  unidades: 1, skillRenta: "mecanica_basica",    desc: "Para repartos. Se deprecia, pero rentada deja flujo." },
+  { id: "auto",       tipo: "vehiculo", nombre: "Automóvil",          emoji: "🚗",  costo: 90000,  plusvalia: -0.008, renta: 2800,  mantenimiento: 700,  unidades: 1, skillRenta: "mecanica_basica",    desc: "Rentable para apps de transporte." },
+  { id: "camioneta",  tipo: "vehiculo", nombre: "Camioneta de carga", emoji: "🚚",  costo: 160000, plusvalia: -0.006, renta: 5000,  mantenimiento: 1100, unidades: 1, skillRenta: "mecanica_avanzada",  desc: "Ideal para fletes y negocio de carga." },
+  { id: "casa_chica", tipo: "casa",     nombre: "Casa pequeña",       emoji: "🏠",  costo: 130000, plusvalia: 0.012,  renta: 3800,  mantenimiento: 800,  unidades: 1, skillRenta: "bienes_raices",      desc: "Se revaloriza y puedes rentarla." },
+  { id: "depa",       tipo: "casa",     nombre: "Departamento",       emoji: "🏢",  costo: 220000, plusvalia: 0.015,  renta: 6500,  mantenimiento: 1200, unidades: 1, skillRenta: "bienes_raices",      desc: "Buena plusvalía en zona céntrica." },
+  { id: "duplex",     tipo: "casa",     nombre: "Dúplex (2 unidades)", emoji: "🏘️", costo: 380000, plusvalia: 0.016,  renta: 12000, mantenimiento: 2200, unidades: 2, skillRenta: "bienes_raices",      desc: "Dos viviendas para rentar por separado." },
+  { id: "edificio",   tipo: "casa",     nombre: "Edificio (6 deptos)", emoji: "🏨", costo: 950000, plusvalia: 0.018,  renta: 34000, mantenimiento: 6000, unidades: 6, skillRenta: "bienes_raices",      desc: "Varias habitaciones/unidades: gran ingreso por rentas." },
+  { id: "local",      tipo: "negocio",  nombre: "Local comercial",    emoji: "🏬",  costo: 360000, plusvalia: 0.018,  renta: 13000, mantenimiento: 1800, unidades: 1, skillRenta: "emprendimiento",     desc: "Réntalo o monta tu propio negocio." },
 ];
 // Multiplicador de renta según tus habilidades (tus skills te ayudan a rendir más).
 const boostRenta = (bien, habilidades) => {
@@ -708,8 +745,8 @@ function Avatar({ position, profileEmoji, energia }) {
 function EventModal({ evento, onChoice, habilidades, energia }) {
   const tieneHabilidad = !evento.requiereHabilidad || habilidades.includes(evento.requiereHabilidad);
   const skillRequerida = evento.requiereHabilidad ? getSkillById(evento.requiereHabilidad) : null;
-  const tipoColor = { black_swan: C.red, gasto: C.yellow, chamba: C.orange, oportunidad: C.purple, inversion: C.green, descanso: C.blue }[evento.tipo] || C.purple;
-  const tipoLabel = { black_swan: "⚠️ EVENTO CRÍTICO", gasto: "GASTO INESPERADO", chamba: "CHAMBA DISPONIBLE", oportunidad: "OPORTUNIDAD", inversion: "INVERSIÓN", descanso: "TIEMPO LIBRE" }[evento.tipo];
+  const tipoColor = { black_swan: C.red, gasto: C.yellow, chamba: C.orange, oportunidad: C.purple, inversion: C.green, descanso: C.blue, inmueble: "#D98A4E" }[evento.tipo] || C.purple;
+  const tipoLabel = { black_swan: "⚠️ EVENTO CRÍTICO", gasto: "GASTO INESPERADO", chamba: "CHAMBA DISPONIBLE", oportunidad: "OPORTUNIDAD", inversion: "INVERSIÓN", descanso: "TIEMPO LIBRE", inmueble: "🏠 OPORTUNIDAD INMOBILIARIA" }[evento.tipo];
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 24, maxWidth: 380, width: "100%" }}>
@@ -990,6 +1027,7 @@ export default function RatRaceGame() {
   const [pertenencias, setPertenencias] = useState([]);
   const [objecion, setObjecion] = useState(null);   // diálogo de negociación activo
   const [negPend, setNegPend] = useState(null);      // trato pendiente de resolver tras negociar
+  const [inquilino, setInquilino] = useState(null);   // negociación con inquilino al rentar
 
   // Mantener el flag de sonido sincronizado con el estado de "muted"
   useEffect(() => { setSoundOn(!muted); try { localStorage.setItem("ratrace_muted", muted ? "1" : "0"); } catch {} }, [muted]);
@@ -1011,19 +1049,22 @@ export default function RatRaceGame() {
     }
   }, []);
 
-  const checkMentor = useCallback((fin, eng) => {
+  const checkMentor = useCallback((fin, eng, pert = []) => {
     const al = (arr) => arr[Math.floor(Math.random() * arr.length)];
     const total = totalDeuda(fin);
     const tieneRapidito = (fin.deudas || []).some(d => d.bancoId === "rapidito");
+    const bienSinRentar = (pert || []).some(p => !p.rentando && (p.mantenimiento || 0) > 0);
     if (eng.actual < 25) { setMentorTip(MENTOR_TIPS.energiaBaja); return; }
     if (tieneRapidito) { setMentorTip(al(MENTOR_CONSEJOS.bancoCaro)); return; }
     if (total > 0 && interesMensual(fin) > total * 0.05) { setMentorTip(al(MENTOR_CONSEJOS.deudaCrece)); return; }
+    if (bienSinRentar) { setMentorTip(al(MENTOR_CONSEJOS.mantenimientoAlto)); return; }
     if (total > fin.ingresoMensual * 2 && total > 0) { setMentorTip(MENTOR_TIPS.deudaAlta); return; }
     if (fin.activosPasivos >= fin.gastosMensuales * 0.7 && fin.activosPasivos < fin.gastosMensuales) { setMentorTip(al(MENTOR_CONSEJOS.cercaLibertad)); return; }
     if (fin.gastosMensuales > fin.ingresoMensual + fin.activosPasivos && fin.ingresoMensual > 0) { setMentorTip(MENTOR_TIPS.gastosMayores); return; }
     if (fin.dinero < fin.gastosMensuales * 0.5) { setMentorTip(MENTOR_TIPS.sinAhorros); return; }
+    if (eng.actual < 45) { setMentorTip(al(MENTOR_CONSEJOS.cuidaEnergia)); return; }
     if (fin.activosPasivos === 0) { setMentorTip(al(MENTOR_CONSEJOS.pocoActivo)); return; }
-    if (Math.random() < 0.35) setMentorTip(al(MENTOR_CONSEJOS.general));
+    if (Math.random() < 0.45) setMentorTip(al(MENTOR_CONSEJOS.general));
   }, []);
 
   // Convierte la deuda inicial (un número) en deudas por banco según el perfil.
@@ -1151,7 +1192,7 @@ export default function RatRaceGame() {
           const selected = elegirEvento(fin, eng);
           setEvento(selected);
           sfx("coin");
-          checkMentor(fin, eng);
+          checkMentor(fin, eng, pertenencias);
           return eng;
         });
         return fin;
@@ -1161,7 +1202,23 @@ export default function RatRaceGame() {
     addLog(`${getCicloLabel(profile.ciclo)} ${ciclo + 1} avanzado`, "success");
   };
 
+  // Oportunidad de inmueble: comprar de contado, rechazar o financiar (préstamo).
+  const manejarInmueble = (idx) => {
+    const ev = evento;
+    const bien = MERCADO_BIENES.find(b => b.id === ev.bienId);
+    if (!bien) { setEvento(null); return; }
+    const precio = Math.round(bien.costo * (ev.descuento || 1));
+    if (idx === 1) { addLog(`Rechazaste: ${ev.titulo}`, "info"); sfx("click"); setEvento(null); return; }
+    if (idx === 0 && finances.dinero < precio) { showNotif("No te alcanza de contado. Prueba financiar.", C.yellow); return; }
+    const imp = ev.impacto[idx];
+    if (imp?.energia) setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, Math.max(0, prev.actual + imp.energia)) }));
+    comprarBienPrecio(bien, precio, idx === 2);
+    setMentorTip(MENTOR_TIPS.invertir);
+    setEvento(null);
+  };
+
   const handleEventChoice = (idx) => {
+    if (evento.tipo === "inmueble") { manejarInmueble(idx); return; }
     const imp = evento.impacto[idx];
     const opcion = evento.opciones[idx];
 
@@ -1332,17 +1389,30 @@ export default function RatRaceGame() {
   // ============================================================
   // PERTENENCIAS (comprar, rentar / dejar de rentar, vender)
   // ============================================================
-  const comprarBien = (bien) => {
-    if (finances.dinero < bien.costo) { showNotif("Sin efectivo suficiente", C.red); return; }
+  // Compra un bien a un precio dado. Si `financiar` es true, se toma un
+  // préstamo por el precio (deuda) en vez de pagar de contado.
+  // Cada bien añade su mantenimiento a los gastos mensuales.
+  const comprarBienPrecio = (bien, precio, financiar = false) => {
+    if (!financiar && finances.dinero < precio) { showNotif("Sin efectivo. Puedes financiarlo.", C.red); return false; }
     const nuevo = { id: `${bien.id}_${Date.now()}`, baseId: bien.id, tipo: bien.tipo, nombre: bien.nombre, emoji: bien.emoji,
-      valorCompra: bien.costo, valorActual: bien.costo, plusvalia: bien.plusvalia, rentaBase: bien.renta, rentando: false, rentaAplicada: 0 };
-    setFinances(prev => ({ ...prev, dinero: prev.dinero - bien.costo }));
+      valorCompra: precio, valorActual: precio, plusvalia: bien.plusvalia, rentaBase: bien.renta,
+      mantenimiento: bien.mantenimiento || 0, unidades: bien.unidades || 1, rentando: false, rentaAplicada: 0 };
+    setFinances(prev => {
+      const nf = { ...prev, gastosMensuales: prev.gastosMensuales + (bien.mantenimiento || 0) };
+      if (financiar) nf.deudas = agregarDeuda(prev.deudas || [], precio, "credimax");
+      else nf.dinero = prev.dinero - precio;
+      return nf;
+    });
     setPertenencias(prev => [...prev, nuevo]);
-    addLog(`Compraste ${bien.nombre} por ${fmt(bien.costo)}`, "success");
-    showNotif(`${bien.emoji} ${bien.nombre} adquirido`, C.green);
+    addLog(financiar ? `Financiaste ${bien.nombre} (${fmt(precio)}, deuda) · mantenimiento +${fmt(bien.mantenimiento || 0)}/mes`
+                     : `Compraste ${bien.nombre} por ${fmt(precio)} · mantenimiento +${fmt(bien.mantenimiento || 0)}/mes`, financiar ? "danger" : "success");
+    showNotif(`${bien.emoji} ${bien.nombre} ${financiar ? "financiado" : "adquirido"}`, financiar ? C.yellow : C.green);
     sfx("coin");
+    return true;
   };
+  const comprarBien = (bien) => { comprarBienPrecio(bien, bien.costo, false); };
 
+  // Al rentar, primero hay que BUSCAR Y NEGOCIAR con un inquilino (modal).
   const rentarBien = (id) => {
     const p = pertenencias.find(x => x.id === id);
     if (!p) return;
@@ -1352,19 +1422,43 @@ export default function RatRaceGame() {
       addLog(`Dejaste de rentar ${p.nombre}`, "info");
       showNotif("Dejaste de rentar", C.blue);
     } else {
-      const renta = rentaEfectiva(p, habilidades);
-      setFinances(f => { const nf = { ...f, activosPasivos: f.activosPasivos + renta }; checkWin(nf); return nf; });
-      setPertenencias(prev => prev.map(x => x.id === id ? { ...x, rentando: true, rentaAplicada: renta } : x));
-      addLog(`Rentas ${p.nombre}: +${fmt(renta)}/mes`, "success");
-      showNotif(`+${fmt(renta)}/mes por renta`, C.green);
-      sfx("coin");
+      setInquilino({ id, base: rentaEfectiva(p, habilidades), nombre: p.nombre, emoji: p.emoji });
+      sfx("click");
+    }
+  };
+  // Aplica el resultado de la negociación con el inquilino.
+  const cerrarRentaConInquilino = (rentaFinal) => {
+    const data = inquilino; setInquilino(null);
+    if (!data || rentaFinal <= 0) return;
+    setFinances(f => { const nf = { ...f, activosPasivos: f.activosPasivos + rentaFinal }; checkWin(nf); return nf; });
+    setPertenencias(prev => prev.map(x => x.id === data.id ? { ...x, rentando: true, rentaAplicada: rentaFinal } : x));
+    addLog(`Inquilino para ${data.nombre}: +${fmt(rentaFinal)}/mes`, "success");
+    showNotif(`🔑 +${fmt(rentaFinal)}/mes por renta`, C.green);
+    sfx("coin");
+  };
+  // Negociar una renta más alta: depende de tus habilidades (puede salir mal).
+  const negociarInquilino = () => {
+    const data = inquilino; if (!data) return;
+    let prob = 0.4;
+    if (habilidades.includes("bienes_raices")) prob += 0.15;
+    if (habilidades.includes("negociacion")) prob += 0.20;
+    if (habilidades.includes("oratoria")) prob += 0.10;
+    if (habilidades.includes("lenguaje_corporal")) prob += 0.10;
+    if (Math.random() < Math.min(0.9, prob)) {
+      cerrarRentaConInquilino(Math.round(data.base * 1.2));
+    } else {
+      setInquilino(null);
+      addLog(`El inquilino de ${data.nombre} no aceptó la renta alta. Intenta luego.`, "danger");
+      showNotif("El inquilino se fue 😕", C.red); sfx("error");
     }
   };
 
   const venderBien = (id) => {
     const p = pertenencias.find(x => x.id === id);
     if (!p) return;
-    setFinances(f => ({ ...f, dinero: f.dinero + p.valorActual, activosPasivos: Math.max(0, f.activosPasivos - (p.rentando ? (p.rentaAplicada || 0) : 0)) }));
+    setFinances(f => ({ ...f, dinero: f.dinero + p.valorActual,
+      activosPasivos: Math.max(0, f.activosPasivos - (p.rentando ? (p.rentaAplicada || 0) : 0)),
+      gastosMensuales: Math.max(0, f.gastosMensuales - (p.mantenimiento || 0)) }));
     setPertenencias(prev => prev.filter(x => x.id !== id));
     const ganancia = p.valorActual - p.valorCompra;
     addLog(`Vendiste ${p.nombre} por ${fmt(p.valorActual)} (${ganancia >= 0 ? "+" : ""}${fmt(ganancia)})`, ganancia >= 0 ? "success" : "danger");
@@ -1418,12 +1512,16 @@ export default function RatRaceGame() {
     const f = finances, total = totalDeuda(f), pasivo = f.activosPasivos, gastos = f.gastosMensuales;
     let cat = "general";
     const tieneRapidito = (f.deudas || []).some(d => d.bancoId === "rapidito");
+    const bienSinRentar = (pertenencias || []).some(p => !p.rentando && (p.mantenimiento || 0) > 0);
     if (tieneRapidito) cat = "bancoCaro";
     else if (interesMensual(f) > total * 0.05 && total > 0) cat = "deudaCrece";
+    else if (bienSinRentar) cat = "mantenimientoAlto";
     else if (total > f.ingresoMensual * 1.5 && total > 0) cat = "deudaAlta";
     else if (pasivo >= gastos * 0.7 && pasivo < gastos) cat = "cercaLibertad";
+    else if (energia.actual < 45) cat = "cuidaEnergia";
     else if (pasivo === 0) cat = "pocoActivo";
-    else if (flujoMensual > 0) cat = "buenFlujo";
+    else if (habilidades.includes("bienes_raices") && pertenencias.length === 0) cat = "inmueble";
+    else if (flujoMensual > 0) cat = (Math.random() < 0.5 ? "buenFlujo" : "diversifica");
     const lista = MENTOR_CONSEJOS[cat] || MENTOR_CONSEJOS.general;
     setMentorTip(lista[Math.floor(Math.random() * lista.length)]);
     sfx("click");
@@ -1758,6 +1856,7 @@ export default function RatRaceGame() {
                         <span style={{ color: C.textPrimary, fontWeight: 700, fontSize: 14 }}>{p.emoji} {p.nombre}</span>
                         <div style={{ fontSize: 11, color: C.textSecondary }}>Valor actual: <strong style={{ color: C.textPrimary }}>{fmt(p.valorActual)}</strong> <span style={{ color: ganancia >= 0 ? C.green : C.red }}>({ganancia >= 0 ? "+" : ""}{fmt(ganancia)})</span></div>
                         <div style={{ fontSize: 11, color: p.rentando ? C.green : C.textMuted }}>{p.rentando ? `🟢 Rentando: +${fmt(p.rentaAplicada)}/mes` : `Renta potencial: ${fmt(rentaPot)}/mes`}</div>
+                        <div style={{ fontSize: 11, color: C.yellow }}>🧰 Mantenimiento: {fmt(p.mantenimiento || 0)}/mes{p.unidades > 1 ? ` · ${p.unidades} unidades` : ""}</div>
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -1815,6 +1914,8 @@ export default function RatRaceGame() {
                     <span style={{ color: C.textSecondary }}>💵 {fmt(b.costo)}</span>
                     <span style={{ color: b.plusvalia >= 0 ? C.green : C.red }}>📈 {plus}</span>
                     <span style={{ color: C.purple }}>🔁 renta {fmt(rentaPot)}/mes</span>
+                    <span style={{ color: C.yellow }}>🧰 manten. {fmt(b.mantenimiento)}/mes</span>
+                    {b.unidades > 1 && <span style={{ color: C.textSecondary }}>🚪 {b.unidades} unid.</span>}
                   </div>
                   <button disabled={!puede} onClick={() => comprarBien(b)} style={{ width: "100%", background: puede ? C.purple : C.border, color: puede ? "#fff" : C.textMuted, border: "none", borderRadius: 10, padding: "9px", fontSize: 12, fontWeight: 700, cursor: puede ? "pointer" : "not-allowed" }}>
                     {puede ? `Comprar ${fmt(b.costo)}` : "Sin efectivo suficiente"}
@@ -1904,6 +2005,28 @@ export default function RatRaceGame() {
       {evento && <EventModal evento={evento} onChoice={handleEventChoice} habilidades={habilidades} energia={energia} />}
       {objecion && <ObjecionModal objecion={objecion} habilidades={habilidades} onResult={resolverNegociacion} />}
       {outcome && <OutcomeModal outcome={outcome} onClose={() => setOutcome(null)} />}
+      {inquilino && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 130, padding: 16 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 24, maxWidth: 380, width: "100%" }}>
+            <div style={{ fontSize: 40, textAlign: "center", marginBottom: 8 }}>🔑</div>
+            <h3 style={{ color: C.textPrimary, fontSize: 17, fontWeight: 800, textAlign: "center", margin: "0 0 6px" }}>Buscar inquilino</h3>
+            <p style={{ color: C.textSecondary, fontSize: 13, textAlign: "center", margin: "0 0 16px", lineHeight: 1.6 }}>
+              Para {inquilino.emoji} <strong>{inquilino.nombre}</strong>. Hay interesados — decide cómo manejar la renta. Negociar más depende de tus habilidades.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button onClick={() => cerrarRentaConInquilino(inquilino.base)} style={{ background: C.purple, color: "#fff", border: "none", borderRadius: 12, padding: "11px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left" }}>
+                ✅ Aceptar inquilino — {fmt(inquilino.base)}/mes
+              </button>
+              <button onClick={negociarInquilino} style={{ background: `${C.green}22`, color: C.green, border: `1px solid ${C.green}66`, borderRadius: 12, padding: "11px 14px", fontSize: 13, fontWeight: 700, cursor: "pointer", textAlign: "left" }}>
+                💬 Negociar renta más alta (+20%) — riesgo
+              </button>
+              <button onClick={() => setInquilino(null)} style={{ background: C.surface, color: C.textSecondary, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}>
+                ⏳ Buscar después (cancelar)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   ); }
 
