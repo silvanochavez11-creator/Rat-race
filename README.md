@@ -25,6 +25,9 @@ npm run preview  # sirve la versión de producción para probarla
 
 ## 🎮 Mecánicas del juego
 
+- **Tutorial guiado**: la primera vez que juegas, una guía paso a paso te explica
+  el objetivo, el tablero, tus números, habilidades, activos, deudas y la
+  negociación. Se puede reabrir cuando quieras con el botón ❓.
 - **Tablero de la carrera de la rata**: tiras el dado al avanzar y tu ficha 🐀
   recorre el tablero. La casilla donde caes (oportunidad, gasto, mercado,
   cliente, chamba, libre, paga) **sesga el evento** que aparece.

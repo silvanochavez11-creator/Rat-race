@@ -817,6 +817,19 @@ const SAVE_KEY = "ratrace_save_v1";
 // TABLA DE LÍDERES (mejores tiempos en salir de la carrera)
 // Se guarda en el navegador. Se ordena por tiempo real (meses), ascendente.
 // ============================================================
+// Tutorial: se muestra la primera vez y se puede reabrir con el botón ❓
+const TUT_KEY = "ratrace_tutorial_visto";
+const TUTORIAL = [
+  { icono: "🐀", titulo: "Estás en la carrera de la rata", texto: "Trabajas y cobras, pero tus GASTOS se comen tu sueldo. La meta es escapar: lograr que tu INGRESO PASIVO (dinero que entra sin trabajar) sea mayor que tus gastos. Mira la barra 🏆 Libertad arriba: cuando llegue al 100%, ¡ganaste!" },
+  { icono: "🎲", titulo: "El tablero y el dado", texto: "Pulsa «Avanzar» para tirar el dado. Tu rata 🐀 recorre el tablero y la casilla donde cae trae un evento: 💡 oportunidad, 🛍️ gasto, 📊 mercado, 🤝 cliente, 🔧 chamba o 🌴 libre. Cada evento te da decisiones." },
+  { icono: "💰", titulo: "Tus números", texto: "Arriba ves tu DINERO y tu FLUJO mensual (lo que te queda al mes). También tu ⚡ energía, tu 🎓 nivel de experiencia (da bonos) y tus 🏅 puntos de maestría (se gastan en mejorar skills)." },
+  { icono: "⚡", titulo: "Aprende habilidades", texto: "En la pestaña «Skills» aprendes habilidades que abren mejores oportunidades. Tu profesión tiene una rama RECOMENDADA (★) con −25% de descuento. Sube la MAESTRÍA de tus skills (1→20) para hacerlas más potentes." },
+  { icono: "🏠", titulo: "Activos y deudas", texto: "En «Bienes» compras activos (casas, vehículos, negocios) que generan ingreso pasivo si los rentas. ¡Ojo con «Deudas»! Los bancos cobran interés cada mes; paga a tiempo para subir tu crédito y que te presten más." },
+  { icono: "🤝", titulo: "Negocia tus tratos", texto: "Cuando un cliente te ofrezca un proyecto, elige «Negociar» para abrir un diálogo y convencerlo con tus respuestas. Tus habilidades de ventas (oratoria, cierre...) suben tu probabilidad de cerrar por más dinero." },
+  { icono: "😴", titulo: "Cuida tu energía", texto: "Avanzar te cansa. Si te quedas sin energía, debes «Descansar» (cuesta un poco, a veces es gratis). El mentor 🧑‍🏫 te da consejos: ¡púlsalo cuando estés perdido!" },
+  { icono: "🏁", titulo: "¡A escapar rápido!", texto: "Construye ingreso pasivo hasta superar tus gastos. Entre más rápido salgas, mejor lugar en el TOP 10 al final. Elige tu dificultad al empezar. ¡Mucha suerte! 🚀" },
+];
+
 const LB_KEY = "ratrace_leaderboard_v1";
 const cargarTabla = () => { try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; } catch { return []; } };
 const guardarTabla = (list) => { try { localStorage.setItem(LB_KEY, JSON.stringify(list)); } catch {} };
@@ -1249,6 +1262,7 @@ export default function RatRaceGame() {
   const [boardPos, setBoardPos] = useState(0);   // casilla actual en el tablero
   const [dado, setDado] = useState(null);          // valor del dado
   const [rolling, setRolling] = useState(false);   // animación de movimiento
+  const [tutorialPaso, setTutorialPaso] = useState(null);  // paso actual del tutorial (null = cerrado)
   const [evento, setEvento] = useState(null);
   const [log, setLog] = useState([]);
   const [mentorTip, setMentorTip] = useState(null);
@@ -1392,6 +1406,8 @@ export default function RatRaceGame() {
     setBoardPos(0); setDado(null); setRolling(false);
     winRecordedRef.current = false; setMiEntradaId(null);
     setScreen("game");
+    // Mostrar el tutorial la primera vez que se juega.
+    try { if (!localStorage.getItem(TUT_KEY)) setTutorialPaso(0); } catch {}
     sfx("click");
   };
 
@@ -2169,6 +2185,9 @@ export default function RatRaceGame() {
           <button onClick={pedirConsejo} style={{ flex: 1, background: `linear-gradient(135deg, #1A1640, #241C5A)`, border: `1px solid ${C.purple}44`, color: "#C4BBFF", borderRadius: 12, padding: "10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
             🧑‍🏫 Pedir consejo
           </button>
+          <button onClick={() => { setTutorialPaso(0); sfx("click"); }} title="¿Cómo se juega?" style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 12, padding: "10px 14px", fontSize: 14, cursor: "pointer" }}>
+            ❓
+          </button>
           <button onClick={() => { setMuted(m => !m); }} title="Activar/silenciar sonido" style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 12, padding: "10px 14px", fontSize: 14, cursor: "pointer" }}>
             {muted ? "🔇" : "🔊"}
           </button>
@@ -2564,6 +2583,40 @@ export default function RatRaceGame() {
           </div>
         </div>
       )}
+
+      {/* TUTORIAL paso a paso */}
+      {tutorialPaso !== null && TUTORIAL[tutorialPaso] && (() => {
+        const paso = TUTORIAL[tutorialPaso];
+        const ultimo = tutorialPaso >= TUTORIAL.length - 1;
+        const cerrar = () => { try { localStorage.setItem(TUT_KEY, "1"); } catch {} setTutorialPaso(null); };
+        return (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 300, padding: 16 }}>
+            <div style={{ background: C.card, border: `1px solid ${C.purple}55`, borderRadius: 22, padding: 24, maxWidth: 380, width: "100%", animation: "rr-pop 0.25s ease" }}>
+              <div style={{ fontSize: 48, textAlign: "center", marginBottom: 8 }}>{paso.icono}</div>
+              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 2, color: C.purple, textAlign: "center", marginBottom: 6 }}>Tutorial · Paso {tutorialPaso + 1} de {TUTORIAL.length}</div>
+              <h3 style={{ color: C.textPrimary, fontSize: 18, fontWeight: 800, textAlign: "center", margin: "0 0 10px" }}>{paso.titulo}</h3>
+              <p style={{ color: C.textSecondary, fontSize: 13.5, lineHeight: 1.7, textAlign: "center", margin: "0 0 18px" }}>{paso.texto}</p>
+              {/* Puntos de progreso */}
+              <div style={{ display: "flex", justifyContent: "center", gap: 5, marginBottom: 16 }}>
+                {TUTORIAL.map((_, i) => (
+                  <div key={i} style={{ width: i === tutorialPaso ? 18 : 7, height: 7, borderRadius: 99, background: i === tutorialPaso ? C.purple : C.border, transition: "width 0.2s" }} />
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {tutorialPaso > 0 && (
+                  <button onClick={() => setTutorialPaso(p => p - 1)} style={{ flex: 1, background: C.surface, color: C.textSecondary, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← Atrás</button>
+                )}
+                <button onClick={() => ultimo ? cerrar() : setTutorialPaso(p => p + 1)} style={{ flex: 2, background: `linear-gradient(135deg, ${C.purple}, #9333EA)`, color: "white", border: "none", borderRadius: 12, padding: "11px", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                  {ultimo ? "¡A jugar! 🚀" : "Siguiente →"}
+                </button>
+              </div>
+              {!ultimo && (
+                <button onClick={cerrar} style={{ background: "none", border: "none", color: C.textMuted, fontSize: 12, cursor: "pointer", width: "100%", marginTop: 10 }}>Saltar tutorial</button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   ); }
 
