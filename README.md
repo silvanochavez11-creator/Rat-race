@@ -33,10 +33,12 @@ npm run preview  # sirve la versión de producción para probarla
   (agencia de marketing, escalar) **forman una empresa que genera ingreso pasivo**.
 - **Experiencia (nivel 1 a 10)**: sube con las semanas trabajadas y los trabajos
   hechos. A mayor nivel, **más probabilidad de éxito y mejores pagos** en contratos.
+- **Puntos de maestría** (barra independiente del nivel): se acumulan al trabajar
+  y se **gastan** en mejorar habilidades (no afectan tu nivel de experiencia).
 - **Maestría por habilidad (1 a 20)**: cada habilidad que tienes sube de maestría
-  y se vuelve más potente. La mejoras de 3 formas: 🎓 con **experiencia** (+0.15,
-  gasta puntos de experiencia), 💵 con **dinero** (+0.5) o ⭐ una **mejora especial**
-  más cara (+1.0). A más maestría, mejores contratos, rentas y negociaciones.
+  y se vuelve más potente. La mejoras de 3 formas: 🎓 con **puntos de maestría**
+  (+0.15), 💵 con **dinero** (+0.5) o ⭐ una **mejora especial** más cara (+1.0).
+  A más maestría, mejores contratos, rentas y negociaciones.
 - **Pertenencias 🏠🚗**: compra vehículos, casas, dúplex, **edificios de varias
   unidades** y negocios. Tienen **plusvalía** (las casas suben de valor, los
   vehículos se deprecian) y eliges si los **rentas** o los **vendes**.
@@ -64,6 +66,8 @@ npm run preview  # sirve la versión de producción para probarla
 - **Sistema de deuda con bancos ficticios**: pestaña 💳 **Deudas** donde:
   - Pides préstamos eligiendo banco y cantidad. Cada banco tiene su tasa
     mensual: 🏛️ Banco Popular (3%), 🏦 CrediMax (6%), 💸 Préstamos Rapidito (8%).
+  - Cada banco tiene un **límite de préstamo** que crece con tu **historial
+    crediticio** (pagar tus deudas a tiempo lo sube). No puedes pedir de más.
   - Cada mes se cobra el interés y un pago mínimo automático. En bancos caros
     el interés supera el mínimo y **la deuda crece sola** (interés compuesto).
   - Puedes **Liquidar** (pagar todo) o **Abonar** (pago parcial) cuando quieras.

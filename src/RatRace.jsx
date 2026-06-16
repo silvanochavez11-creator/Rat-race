@@ -568,13 +568,21 @@ const MENTOR_CONSEJOS = {
 // BANCOS FICTICIOS Y SISTEMA DE DEUDA
 // ============================================================
 const BANCOS = {
-  popular:  { id: "popular",  nombre: "Banco Popular",       tasa: 0.03, emoji: "🏛️", color: "#00E5A0", desc: "Tasa baja (3%/mes). El más justo." },
-  credimax: { id: "credimax", nombre: "CrediMax",            tasa: 0.06, emoji: "🏦", color: "#FFD166", desc: "Tasa media (6%/mes)." },
-  rapidito: { id: "rapidito", nombre: "Préstamos Rapidito",  tasa: 0.08, emoji: "💸", color: "#FF4D6A", desc: "¡Tasa alta (8%/mes)! Préstamo exprés, pero caro." },
+  popular:  { id: "popular",  nombre: "Banco Popular",       tasa: 0.03, emoji: "🏛️", color: "#00E5A0", limiteBase: 40000,  desc: "Tasa baja (3%/mes). El más justo, pero presta con cautela." },
+  credimax: { id: "credimax", nombre: "CrediMax",            tasa: 0.06, emoji: "🏦", color: "#FFD166", limiteBase: 80000,  desc: "Tasa media (6%/mes)." },
+  rapidito: { id: "rapidito", nombre: "Préstamos Rapidito",  tasa: 0.08, emoji: "💸", color: "#FF4D6A", limiteBase: 120000, desc: "¡Tasa alta (8%/mes)! Presta más fácil, pero caro." },
 };
 const getBanco = (id) => BANCOS[id] || BANCOS.credimax;
 const totalDeuda = (fin) => (fin.deudas || []).reduce((s, d) => s + d.monto, 0);
 const interesMensual = (fin) => (fin.deudas || []).reduce((s, d) => s + d.monto * getBanco(d.bancoId).tasa, 0);
+// Deuda actual con un banco concreto.
+const deudaConBanco = (fin, bancoId) => (fin.deudas || []).filter(d => d.bancoId === bancoId).reduce((s, d) => s + d.monto, 0);
+// Factor de crédito: 0/100 → ×1, 100/100 → ×3. Mejor historial = más te prestan.
+const factorCredito = (credito) => 0.6 + Math.min(100, Math.max(0, credito)) / 100 * 2.4;
+// Límite total que un banco te presta según tu historial crediticio.
+const limiteBanco = (bancoId, credito) => Math.round(getBanco(bancoId).limiteBase * factorCredito(credito));
+// Cuánto MÁS puedes pedirle a ese banco ahora mismo.
+const cupoDisponible = (fin, bancoId, credito) => Math.max(0, limiteBanco(bancoId, credito) - deudaConBanco(fin, bancoId));
 
 // Agrega una deuda nueva (de un banco). Si ya hay deuda del mismo banco, la suma.
 const agregarDeuda = (deudas, monto, bancoId) => {
@@ -1046,6 +1054,8 @@ export default function RatRaceGame() {
   const [haySaved, setHaySaved] = useState(() => { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } });
   const [prestamoBanco, setPrestamoBanco] = useState("credimax");
   const [experiencia, setExperiencia] = useState(0);
+  const [puntosMaestria, setPuntosMaestria] = useState(0);  // puntos que se gastan en maestría (independientes del nivel)
+  const [credito, setCredito] = useState(20);               // historial crediticio 0-100
   const [pertenencias, setPertenencias] = useState([]);
   const [dominios, setDominios] = useState({});      // maestría 1-20 por habilidad
   const [objecion, setObjecion] = useState(null);   // diálogo de negociación activo
@@ -1108,7 +1118,7 @@ export default function RatRaceGame() {
     const dom0 = {}; p.habilidades.forEach(id => { dom0[id] = 1; });
     setDominios(dom0);
     setCiclo(0); setLog([]); setSeguimientos([]); setOutcome(null);
-    setExperiencia(0); setPertenencias([]); setScreen("game");
+    setExperiencia(0); setPuntosMaestria(0); setCredito(20); setPertenencias([]); setScreen("game");
     sfx("click");
   };
 
@@ -1116,11 +1126,11 @@ export default function RatRaceGame() {
   useEffect(() => {
     if (screen !== "game" || !finances || !profile) return;
     try {
-      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios };
+      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito };
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
       setHaySaved(true);
     } catch {}
-  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios]);
+  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito]);
 
   // Cargar la partida guardada y continuar.
   const continuarPartida = () => {
@@ -1134,6 +1144,8 @@ export default function RatRaceGame() {
       setFinances(fin);
       setEnergia(data.energia); setCiclo(data.ciclo); setLog(data.log || []); setSeguimientos(data.seguimientos || []);
       setExperiencia(data.experiencia || 0); setPertenencias(data.pertenencias || []);
+      setPuntosMaestria(data.puntosMaestria ?? (data.experiencia || 0));   // compat: usa la exp previa como puntos iniciales
+      setCredito(data.credito ?? 20);
       // Compatibilidad: si una partida vieja no tiene maestrías, las creamos en 1.
       const dom = data.dominios || {}; (data.habilidades || []).forEach(id => { if (!dom[id]) dom[id] = 1; });
       setDominios(dom);
@@ -1169,8 +1181,11 @@ export default function RatRaceGame() {
     // Plusvalía: cada mes tus pertenencias cambian de valor (casas suben, vehículos bajan).
     setPertenencias(prev => prev.map(p => ({ ...p, valorActual: Math.max(0, Math.round(p.valorActual * (1 + p.plusvalia * factorDe(profile.ciclo)))) })));
 
-    // Experiencia: cada semana trabajada suma. Más experiencia = mejores contratos.
+    // Experiencia: cada semana trabajada suma (nivel) y da puntos de maestría (independientes).
     setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + 1));
+    setPuntosMaestria(p => p + 1);
+    // Historial crediticio: mejora si pagas tu deuda cada mes; mejora poco si no debes nada.
+    setCredito(c => Math.min(100, c + (totalDeuda(finances) > 0 ? 1.2 : 0.4)));
 
     setEnergia(prev => {
       const perdida = profile.ciclo === "diario" ? 15 : profile.ciclo === "semanal" ? 20 : profile.ciclo === "quincenal" ? 25 : 30;
@@ -1289,7 +1304,7 @@ export default function RatRaceGame() {
     });
     if (imp.energia) setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, Math.max(0, prev.actual + imp.energia)) }));
     // Experiencia por una chamba realizada (acción positiva)
-    if (esAccionPositiva && evento.tipo === "chamba" && imp.dinero > 0) setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + 2));
+    if (esAccionPositiva && evento.tipo === "chamba" && imp.dinero > 0) { setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + 2)); setPuntosMaestria(p => p + 2); }
 
     // Build immediate result message
     const resultParts = [];
@@ -1316,7 +1331,9 @@ export default function RatRaceGame() {
 
   // Aplica el resultado resuelto (ganado/perdido/...) a tus finanzas y lo muestra.
   const procesarResolved = (ev, imp, resolved) => {
-    setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + (resolved.tipo === "ganado" ? 3 : resolved.tipo === "perdido" ? 1 : 2)));
+    const gan = resolved.tipo === "ganado" ? 3 : resolved.tipo === "perdido" ? 1 : 2;
+    setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + gan));
+    setPuntosMaestria(p => p + gan);
     if (imp.energia) setEnergia(prev => ({ ...prev, actual: Math.min(prev.max, Math.max(0, prev.actual + imp.energia)) }));
     setFinances(prev => {
       const nuevo = { ...prev };
@@ -1362,15 +1379,15 @@ export default function RatRaceGame() {
     sfx("success");
   };
 
-  // Mejora la maestría de una habilidad. modo: "exp" (+0.15, cuesta experiencia),
+  // Mejora la maestría de una habilidad. modo: "exp" (+0.15, gasta PUNTOS DE MAESTRÍA),
   // "dinero" (+0.5) o "especial" (+1.0, más caro).
   const mejorarDominio = (skill, modo) => {
     const actual = dominioDe(dominios, skill.id);
     if (actual >= DOMINIO_MAX) { showNotif("¡Maestría al máximo (20)!", C.yellow); return; }
     let inc = 0;
     if (modo === "exp") {
-      if (experiencia < COSTO_EXP_DOMINIO) { showNotif(`Necesitas ${COSTO_EXP_DOMINIO} de experiencia`, C.yellow); return; }
-      setExperiencia(e => Math.max(0, e - COSTO_EXP_DOMINIO));
+      if (puntosMaestria < COSTO_EXP_DOMINIO) { showNotif(`Necesitas ${COSTO_EXP_DOMINIO} puntos de maestría`, C.yellow); return; }
+      setPuntosMaestria(p => Math.max(0, p - COSTO_EXP_DOMINIO));
       inc = 0.15;
     } else {
       const costo = modo === "especial" ? costoEspecialDominio(skill, dominios) : costoDineroDominio(skill, dominios);
@@ -1411,8 +1428,9 @@ export default function RatRaceGame() {
       if (pago <= 0) { showNotif("Sin efectivo suficiente", C.red); return prev; }
       const deudas = prev.deudas.map(d => d.id === deudaId ? { ...d, monto: d.monto - pago } : d).filter(d => d.monto > 1);
       addLog(`Abonaste ${fmt(pago)} a ${getBanco(deuda.bancoId).nombre}`, "success");
-      showNotif(`Abonaste ${fmt(pago)} ✓`, C.green);
+      showNotif(`Abonaste ${fmt(pago)} ✓ (+crédito)`, C.green);
       sfx("pay");
+      setCredito(c => Math.min(100, c + 2));   // pagar mejora tu historial crediticio
       return { ...prev, dinero: prev.dinero - pago, deudas };
     });
   };
@@ -1424,19 +1442,22 @@ export default function RatRaceGame() {
       if (prev.dinero < deuda.monto) { showNotif("No te alcanza para liquidarla. Abona lo que puedas.", C.yellow); return prev; }
       const deudas = prev.deudas.filter(d => d.id !== deudaId);
       addLog(`💥 ¡Liquidaste tu deuda con ${getBanco(deuda.bancoId).nombre}!`, "success");
-      showNotif("¡Deuda liquidada! 🎉", C.green);
+      showNotif("¡Deuda liquidada! 🎉 (+crédito)", C.green);
       sfx("success");
+      setCredito(c => Math.min(100, c + 6));   // liquidar sube bastante tu crédito
       return { ...prev, dinero: prev.dinero - deuda.monto, deudas };
     });
   };
 
+  // Pedir préstamo: limitado por el cupo disponible del banco (según historial crediticio).
   const pedirPrestamo = (bancoId, cantidad) => {
-    setFinances(prev => {
-      addLog(`Pediste ${fmt(cantidad)} a ${getBanco(bancoId).nombre} (${Math.round(getBanco(bancoId).tasa*100)}%/mes)`, "danger");
-      showNotif(`+${fmt(cantidad)} en efectivo (deuda)`, C.yellow);
-      sfx("coin");
-      return { ...prev, dinero: prev.dinero + cantidad, deudas: agregarDeuda(prev.deudas || [], cantidad, bancoId) };
-    });
+    const cupo = cupoDisponible(finances, bancoId, credito);
+    if (cupo <= 0) { showNotif(`${getBanco(bancoId).nombre} no te presta más por ahora`, C.red); return; }
+    const monto = Math.min(cantidad, cupo);
+    setFinances(prev => ({ ...prev, dinero: prev.dinero + monto, deudas: agregarDeuda(prev.deudas || [], monto, bancoId) }));
+    addLog(`Pediste ${fmt(monto)} a ${getBanco(bancoId).nombre} (${Math.round(getBanco(bancoId).tasa*100)}%/mes)`, "danger");
+    showNotif(monto < cantidad ? `Solo te prestaron ${fmt(monto)} (tu límite)` : `+${fmt(monto)} en efectivo (deuda)`, C.yellow);
+    sfx("coin");
   };
 
   // ============================================================
@@ -1731,14 +1752,21 @@ export default function RatRaceGame() {
             </div>
           </div>
         </div>
-        {/* Barra de experiencia (nivel 1 a 10) */}
+        {/* Barra 1: nivel de experiencia (1 a 10) — da bonos, no se gasta */}
         <div style={{ marginTop: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.textSecondary, marginBottom: 3 }}>
-            <span>🎓 Experiencia · Nivel {expNivel(experiencia)}/10</span>
+            <span>🎓 Nivel de experiencia {expNivel(experiencia)}/10</span>
             <span style={{ color: C.yellow }}>+{expBonusProb(experiencia)}% éxito · pagos ×{expBonusPago(experiencia).toFixed(2)}</span>
           </div>
           <div style={{ background: C.border, borderRadius: 99, height: 6, overflow: "hidden" }}>
             <div style={{ width: `${Math.round(expProgreso(experiencia) * 100)}%`, background: `linear-gradient(90deg, ${C.orange}, ${C.yellow})`, height: "100%", borderRadius: 99, transition: "width 0.5s ease" }} />
+          </div>
+        </div>
+        {/* Barra 2: puntos de maestría — se gastan en mejorar habilidades (independientes) */}
+        <div style={{ marginTop: 6 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.textSecondary }}>
+            <span>🏅 Puntos de maestría</span>
+            <span style={{ color: C.purple, fontWeight: 700 }}>{puntosMaestria} pts</span>
           </div>
         </div>
       </div>
@@ -1823,6 +1851,18 @@ export default function RatRaceGame() {
               </div>
             </div>
 
+            {/* Historial crediticio: determina cuánto te prestan los bancos */}
+            <div style={{ background: C.card, borderRadius: 12, padding: "13px 16px", border: `1px solid ${C.border}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: C.textSecondary, marginBottom: 5 }}>
+                <span>📊 Historial crediticio</span>
+                <span style={{ color: credito >= 60 ? C.green : credito >= 30 ? C.yellow : C.red, fontWeight: 700 }}>{Math.round(credito)}/100</span>
+              </div>
+              <div style={{ background: C.border, borderRadius: 99, height: 7, overflow: "hidden" }}>
+                <div style={{ width: `${credito}%`, background: `linear-gradient(90deg, ${C.red}, ${C.yellow}, ${C.green})`, height: "100%", borderRadius: 99, transition: "width 0.5s ease" }} />
+              </div>
+              <p style={{ color: C.textMuted, fontSize: 10, margin: "6px 0 0" }}>Pagar tus deudas a tiempo lo sube; un mejor historial = los bancos te prestan más.</p>
+            </div>
+
             {/* Lista de deudas por banco */}
             {(finances.deudas || []).length === 0 ? (
               <div style={{ background: `${C.green}11`, border: `1px solid ${C.green}33`, borderRadius: 12, padding: "16px", textAlign: "center" }}>
@@ -1872,15 +1912,33 @@ export default function RatRaceGame() {
                   </button>
                 ))}
               </div>
-              <p style={{ color: C.textMuted, fontSize: 11, margin: "0 0 8px" }}>{getBanco(prestamoBanco).desc}</p>
-              <div style={{ display: "flex", gap: 6 }}>
-                {[2000, 5000, 10000].map(cant => (
-                  <button key={cant} onClick={() => pedirPrestamo(prestamoBanco, cant)} style={{
-                    flex: 1, background: C.card, border: `1px solid ${C.border}`, color: C.textPrimary,
-                    borderRadius: 10, padding: "10px 4px", fontSize: 12, fontWeight: 700, cursor: "pointer"
-                  }}>+{fmt(cant)}</button>
-                ))}
-              </div>
+              <p style={{ color: C.textMuted, fontSize: 11, margin: "0 0 4px" }}>{getBanco(prestamoBanco).desc}</p>
+              {(() => {
+                const cupo = cupoDisponible(finances, prestamoBanco, credito);
+                const limite = limiteBanco(prestamoBanco, credito);
+                return (
+                  <>
+                    <p style={{ color: cupo > 0 ? C.green : C.red, fontSize: 11, margin: "0 0 8px", fontWeight: 700 }}>
+                      Cupo disponible: {fmt(cupo)} <span style={{ color: C.textMuted, fontWeight: 400 }}>(límite {fmt(limite)} según tu crédito)</span>
+                    </p>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {[5000, 20000, 50000].map(cant => {
+                        const puede = cupo >= cant;
+                        return (
+                          <button key={cant} disabled={!puede} onClick={() => pedirPrestamo(prestamoBanco, cant)} style={{
+                            flex: 1, background: puede ? C.card : C.surface, border: `1px solid ${C.border}`, color: puede ? C.textPrimary : C.textMuted,
+                            borderRadius: 10, padding: "10px 4px", fontSize: 12, fontWeight: 700, cursor: puede ? "pointer" : "not-allowed", opacity: puede ? 1 : 0.5
+                          }}>+{fmt(cant)}</button>
+                        );
+                      })}
+                      <button disabled={cupo <= 0} onClick={() => pedirPrestamo(prestamoBanco, cupo)} style={{
+                        flex: 1, background: cupo > 0 ? `${C.purple}` : C.surface, border: "none", color: cupo > 0 ? "#fff" : C.textMuted,
+                        borderRadius: 10, padding: "10px 4px", fontSize: 12, fontWeight: 700, cursor: cupo > 0 ? "pointer" : "not-allowed", opacity: cupo > 0 ? 1 : 0.5
+                      }}>Máx</button>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             <div style={{ background: `${C.purple}11`, border: `1px solid ${C.purple}33`, borderRadius: 10, padding: "10px 14px" }}>
@@ -2023,7 +2081,7 @@ export default function RatRaceGame() {
                           <div style={{ fontSize: 10, color: C.yellow, textAlign: "center" }}>⭐ Maestría máxima alcanzada</div>
                         ) : (
                           <div style={{ display: "flex", gap: 5 }}>
-                            <button onClick={() => mejorarDominio(skill, "exp")} disabled={experiencia < COSTO_EXP_DOMINIO} style={btnDom(experiencia >= COSTO_EXP_DOMINIO, `${C.orange}22`, C.orange)}>🎓 +0.15<br /><span style={{ fontSize: 8 }}>{COSTO_EXP_DOMINIO} exp</span></button>
+                            <button onClick={() => mejorarDominio(skill, "exp")} disabled={puntosMaestria < COSTO_EXP_DOMINIO} style={btnDom(puntosMaestria >= COSTO_EXP_DOMINIO, `${C.orange}22`, C.orange)}>🎓 +0.15<br /><span style={{ fontSize: 8 }}>{COSTO_EXP_DOMINIO} pts</span></button>
                             <button onClick={() => mejorarDominio(skill, "dinero")} disabled={finances.dinero < cDinero} style={btnDom(finances.dinero >= cDinero, C.card, C.textPrimary)}>💵 +0.5<br /><span style={{ fontSize: 8 }}>{fmt(cDinero)}</span></button>
                             <button onClick={() => mejorarDominio(skill, "especial")} disabled={finances.dinero < cEspecial} style={btnDom(finances.dinero >= cEspecial, `${C.green}22`, C.green)}>⭐ +1.0<br /><span style={{ fontSize: 8 }}>{fmt(cEspecial)}</span></button>
                           </div>
