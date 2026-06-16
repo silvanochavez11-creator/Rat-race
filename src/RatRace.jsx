@@ -834,6 +834,32 @@ const TUTORIAL = [
 ];
 
 const LB_KEY = "ratrace_leaderboard_v1";
+
+// ============================================================
+// RANGOS de desempeño según el tiempo en terminar (en CICLOS del perfil).
+// Cada perfil tiene umbrales distintos (corre en días/semanas/quincenas/meses).
+// ============================================================
+const NIVELES = [
+  { id: "maestro",   label: "Maestro",   emoji: "👑", color: "#FFD166" },
+  { id: "experto",   label: "Experto",   emoji: "⭐", color: "#00E5A0" },
+  { id: "pro",       label: "Pro",       emoji: "💼", color: "#7C6FFF" },
+  { id: "novato",    label: "Novato",    emoji: "🌱", color: "#38BDF8" },
+  { id: "constante", label: "Constante", emoji: "🐢", color: "#7A8BA8" },
+];
+// Umbrales [maestro, experto, pro, novato] en ciclos del perfil (menos = mejor).
+const RANGOS = {
+  estudiante:  [90, 150, 250, 380],  // días
+  freelancer:  [14, 22,  50,  70],   // semanas
+  empleado:    [12, 20,  36,  56],   // quincenas
+  profesional: [7,  12,  24,  40],   // meses
+};
+const umbralesPerfil = (perfilId) => RANGOS[perfilId] || RANGOS.empleado;
+const rangoDe = (perfilId, ciclos) => {
+  const u = umbralesPerfil(perfilId);
+  let i = 0;
+  while (i < u.length && ciclos > u[i]) i++;
+  return NIVELES[i];
+};
 const cargarTabla = () => { try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; } catch { return []; } };
 const guardarTabla = (list) => { try { localStorage.setItem(LB_KEY, JSON.stringify(list)); } catch {} };
 const agregarATabla = (entry) => {
@@ -1331,7 +1357,7 @@ export default function RatRaceGame() {
       winRecordedRef.current = true;
       const id = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
       const entry = {
-        id, perfil: profile.name, emoji: profile.emoji, dificultad: profile.dificultad,
+        id, perfil: profile.name, perfilId: profile.id, emoji: profile.emoji, dificultad: profile.dificultad,
         nivelEmoji: getDificultad(nivelDificultad).emoji, nivelLabel: getDificultad(nivelDificultad).label,
         ciclo, cicloLabel: getCicloLabel(profile.ciclo),
         tiempoMeses: Math.round(ciclo * factorDe(profile.ciclo) * 10) / 10,
@@ -2046,9 +2072,30 @@ export default function RatRaceGame() {
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 64, marginBottom: 16 }}>🏆</div>
         <h1 style={{ color: C.green, fontSize: 26, fontWeight: 900, marginBottom: 6 }}>¡Saliste del Rat Race!</h1>
-        <p style={{ color: C.textSecondary, fontSize: 14, marginBottom: 20 }}>
+        <p style={{ color: C.textSecondary, fontSize: 14, marginBottom: 16 }}>
           Lo lograste en <strong style={{ color: C.textPrimary }}>{ciclo} {getCicloLabel(profile?.ciclo)}s</strong> (≈ {profile ? Math.round(ciclo * factorDe(profile.ciclo) * 10) / 10 : ciclo} meses) como <strong style={{ color: C.textPrimary }}>{profile?.name}</strong>
         </p>
+
+        {/* 🏅 RANGO obtenido + umbrales del perfil */}
+        {profile && (() => {
+          const rango = rangoDe(profile.id, ciclo);
+          const u = umbralesPerfil(profile.id);
+          const unidad = getCicloLabel(profile.ciclo) + "s";
+          return (
+            <div style={{ background: `${rango.color}15`, border: `1px solid ${rango.color}66`, borderRadius: 16, padding: "16px", marginBottom: 20 }}>
+              <div style={{ fontSize: 11, color: C.textSecondary, marginBottom: 4 }}>Tu rango</div>
+              <div style={{ fontSize: 26, fontWeight: 900, color: rango.color, marginBottom: 10 }}>{rango.emoji} {rango.label.toUpperCase()}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                {[["👑 Maestro", u[0]], ["⭐ Experto", u[1]], ["💼 Pro", u[2]], ["🌱 Novato", u[3]]].map(([lab, val], idx) => (
+                  <div key={lab} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: NIVELES[idx].id === rango.id ? rango.color : C.textMuted, fontWeight: NIVELES[idx].id === rango.id ? 800 : 400 }}>
+                    <span>{lab}</span><span>≤ {val} {unidad} {NIVELES[idx].id === rango.id ? "← tú" : ""}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         <div style={{ background: C.card, borderRadius: 16, padding: 20, marginBottom: 20 }}>
           <div style={{ color: C.textSecondary, fontSize: 12, marginBottom: 6 }}>Ingreso pasivo mensual</div>
           <div style={{ color: C.green, fontSize: 38, fontWeight: 900 }}>{fmt(finances?.activosPasivos || 0)}</div>
@@ -2093,12 +2140,15 @@ export default function RatRaceGame() {
               </div>
               {/* Lista top 10 */}
               <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                {top.map((e, i) => (
+                {top.map((e, i) => {
+                  const rg = rangoDe(e.perfilId, e.ciclo);
+                  return (
                   <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, padding: "5px 8px", borderRadius: 8, background: e.id === miEntradaId ? `${C.green}22` : "transparent", border: e.id === miEntradaId ? `1px solid ${C.green}66` : "1px solid transparent" }}>
-                    <span style={{ color: C.textSecondary }}>{i + 1}. {e.emoji} {e.perfil} {e.nivelEmoji || ""}</span>
-                    <span style={{ color: e.id === miEntradaId ? C.green : C.textPrimary, fontWeight: 700 }}>{e.tiempoMeses} meses <span style={{ color: C.textMuted, fontWeight: 400 }}>({e.ciclo} {e.cicloLabel}s)</span></span>
+                    <span style={{ color: C.textSecondary }}>{i + 1}. {e.emoji} {e.perfil} <span title={rg.label} style={{ color: rg.color }}>{rg.emoji}</span></span>
+                    <span style={{ color: e.id === miEntradaId ? C.green : C.textPrimary, fontWeight: 700 }}>{e.ciclo} {e.cicloLabel}s <span style={{ color: C.textMuted, fontWeight: 400 }}>({e.tiempoMeses} m)</span></span>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               {miRank >= 0 && (
                 <p style={{ color: miRank < 3 ? C.yellow : C.textSecondary, fontSize: 12, marginTop: 10, fontWeight: 700 }}>
