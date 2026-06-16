@@ -2,8 +2,8 @@
 
 Juego de **educación financiera** inspirado en *Cashflow* de Robert Kiyosaki.
 Tomas decisiones financieras reales, aprendes habilidades, construyes activos
-y cuidas tu energía. **Ganas cuando tu ingreso pasivo supera tus gastos
-mensuales = libertad financiera.** 🏆
+y cuidas tu energía. **Ganas cuando tu ingreso pasivo cubre tus gastos
+mensuales más el interés de tus deudas = libertad financiera.** 🏆
 
 ## ▶️ Cómo ejecutarlo
 
@@ -98,7 +98,9 @@ npm run preview  # sirve la versión de producción para probarla
   puedes **Continuar** donde la dejaste.
 - **Sonido y animaciones**: efectos de sonido (con botón 🔊/🔇 para silenciar)
   y animaciones sutiles.
-- **Meta**: ingresos pasivos `>` gastos mensuales.
+- **Meta**: ingreso pasivo `≥` gastos mensuales `+` interés de tus deudas
+  (así el interés cuenta: no puedes "ganar" financiando rentas que no se pagan
+  solas).
 - **Tabla de líderes**: al salir de la carrera, tu tiempo se registra y compite en
   un **podio (top 3)** y un **top 10** de tus partidas más rápidas (ranqueadas por
   el tiempo real en meses, para comparar perfiles de forma justa).

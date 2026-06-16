@@ -77,8 +77,8 @@ const SKILL_TREE = {
     skills: [
       { id: "emprendimiento", nombre: "Emprendimiento", costo: 1500, energiaCosto: 15, descripcion: "Bases para iniciar tu propio negocio.", requiere: null },
       { id: "contratar_personal", nombre: "Contratar personal", costo: 2800, energiaCosto: 20, descripcion: "Aprende a contratar y delegar para no hacerlo todo tú.", requiere: "emprendimiento" },
-      { id: "agencia_marketing", nombre: "Agencia de marketing", costo: 5500, energiaCosto: 30, descripcion: "Formas una empresa con empleados que trabaja por ti.", requiere: "contratar_personal", ingresoPasivo: 1200 },
-      { id: "escalar_negocio", nombre: "Escalar negocio", costo: 9500, energiaCosto: 40, descripcion: "Sistematizas y multiplicas tu empresa.", requiere: "agencia_marketing", ingresoPasivo: 2800 },
+      { id: "agencia_marketing", nombre: "Agencia de marketing", costo: 6500, energiaCosto: 30, descripcion: "Formas una empresa con empleados que trabaja por ti.", requiere: "contratar_personal", ingresoPasivo: 1200 },
+      { id: "escalar_negocio", nombre: "Escalar negocio", costo: 13000, energiaCosto: 40, descripcion: "Sistematizas y multiplicas tu empresa.", requiere: "agencia_marketing", ingresoPasivo: 2800 },
     ]
   },
   salud: {
@@ -88,8 +88,8 @@ const SKILL_TREE = {
       { id: "especialidad", nombre: "Especialidad médica", costo: 5000, energiaCosto: 30, descripcion: "Cardiología, pediatría... Contratos médicos mejor pagados.", requiere: "medicina_general" },
       { id: "cirugia", nombre: "Cirugía", costo: 9000, energiaCosto: 40, descripcion: "Cirugías de alto valor y prestigio.", requiere: "especialidad" },
       { id: "consultorio_propio", nombre: "Consultorio propio", costo: 6000, energiaCosto: 25, descripcion: "Abres tu propio consultorio: ingreso pasivo.", requiere: "medicina_general", ingresoPasivo: 1800 },
-      { id: "clinica", nombre: "Clínica con doctores", costo: 12000, energiaCosto: 35, descripcion: "Contratas doctores: tu clínica trabaja por ti.", requiere: "consultorio_propio", ingresoPasivo: 3800 },
-      { id: "hospital", nombre: "Cadena / Hospital", costo: 20000, energiaCosto: 45, descripcion: "Escalas a hospital o cadena de clínicas.", requiere: "clinica", ingresoPasivo: 6500 },
+      { id: "clinica", nombre: "Clínica con doctores", costo: 15000, energiaCosto: 35, descripcion: "Contratas doctores: tu clínica trabaja por ti.", requiere: "consultorio_propio", ingresoPasivo: 3800 },
+      { id: "hospital", nombre: "Cadena / Hospital", costo: 28000, energiaCosto: 45, descripcion: "Escalas a hospital o cadena de clínicas.", requiere: "clinica", ingresoPasivo: 6500 },
     ]
   },
   corporativo: {
@@ -107,7 +107,7 @@ const SKILL_TREE = {
       { id: "propuestas_comerciales", nombre: "Propuestas comerciales", costo: 1500, energiaCosto: 14, descripcion: "Cierras más clientes con mejores propuestas.", requiere: null },
       { id: "gestion_proyectos", nombre: "Gestión de proyectos", costo: 2200, energiaCosto: 18, descripcion: "Llevas varios clientes a la vez: más ingreso.", requiere: null, ingresoMensual: 1600 },
       { id: "productividad", nombre: "Productividad", costo: 1800, energiaCosto: 12, descripcion: "Rindes más con menos: cada ciclo te cansa menos.", requiere: null },
-      { id: "automatizacion", nombre: "Automatización", costo: 4000, energiaCosto: 28, descripcion: "Automatizas tareas: pequeño ingreso pasivo.", requiere: "gestion_proyectos", ingresoPasivo: 900 },
+      { id: "automatizacion", nombre: "Automatización", costo: 4000, energiaCosto: 28, descripcion: "Automatizas tareas: pequeño ingreso pasivo.", requiere: "gestion_proyectos", ingresoPasivo: 700 },
     ]
   },
   basico: {
@@ -116,7 +116,7 @@ const SKILL_TREE = {
       { id: "tutorias", nombre: "Tutorías", costo: 300, energiaCosto: 10, descripcion: "Das clases por hora: ingreso sin capital.", requiere: null, ingresoMensual: 800 },
       { id: "reventa", nombre: "Reventa / Marketplace", costo: 400, energiaCosto: 12, descripcion: "Compras y revendes: ingreso extra.", requiere: null, ingresoMensual: 600 },
       { id: "idiomas", nombre: "Idiomas (inglés)", costo: 1500, energiaCosto: 16, descripcion: "Abres la puerta a clientes internacionales.", requiere: null },
-      { id: "contenido_digital", nombre: "Contenido digital", costo: 800, energiaCosto: 14, descripcion: "TikTok/YouTube: pequeño ingreso pasivo.", requiere: "reventa", ingresoPasivo: 500 },
+      { id: "contenido_digital", nombre: "Contenido digital", costo: 800, energiaCosto: 14, descripcion: "TikTok/YouTube: pequeño ingreso pasivo.", requiere: "reventa", ingresoPasivo: 350 },
     ]
   } };
 
@@ -676,6 +676,9 @@ const BANCOS = {
 const getBanco = (id) => BANCOS[id] || BANCOS.credimax;
 const totalDeuda = (fin) => (fin.deudas || []).reduce((s, d) => s + d.monto, 0);
 const interesMensual = (fin) => (fin.deudas || []).reduce((s, d) => s + d.monto * getBanco(d.bancoId).tasa, 0);
+// Meta real para salir de la carrera: tu ingreso pasivo debe cubrir tus gastos
+// MÁS el interés de tus deudas (si no, el interés te hunde aunque "ganes").
+const gastoMeta = (fin) => fin.gastosMensuales + interesMensual(fin);
 // Deuda actual con un banco concreto.
 const deudaConBanco = (fin, bancoId) => (fin.deudas || []).filter(d => d.bancoId === bancoId).reduce((s, d) => s + d.monto, 0);
 // Factor de crédito: 0/100 → ×1, 100/100 → ×3. Mejor historial = más te prestan.
@@ -738,14 +741,14 @@ const costoEspecialDominio = (skill, dominios) => Math.round((skill.costo || 100
 // skillRenta: habilidad que mejora su rendimiento
 // ============================================================
 const MERCADO_BIENES = [
-  { id: "moto",       tipo: "vehiculo", nombre: "Motocicleta",        emoji: "🏍️", costo: 18000,  plusvalia: -0.010, renta: 700,   mantenimiento: 250,  unidades: 1, skillRenta: "mecanica_basica",    desc: "Para repartos. Se deprecia, pero rentada deja flujo." },
-  { id: "auto",       tipo: "vehiculo", nombre: "Automóvil",          emoji: "🚗",  costo: 90000,  plusvalia: -0.008, renta: 2800,  mantenimiento: 700,  unidades: 1, skillRenta: "mecanica_basica",    desc: "Rentable para apps de transporte." },
-  { id: "camioneta",  tipo: "vehiculo", nombre: "Camioneta de carga", emoji: "🚚",  costo: 160000, plusvalia: -0.006, renta: 5000,  mantenimiento: 1100, unidades: 1, skillRenta: "mecanica_avanzada",  desc: "Ideal para fletes y negocio de carga." },
-  { id: "casa_chica", tipo: "casa",     nombre: "Casa pequeña",       emoji: "🏠",  costo: 130000, plusvalia: 0.012,  renta: 3800,  mantenimiento: 800,  unidades: 1, skillRenta: "bienes_raices",      desc: "Se revaloriza y puedes rentarla." },
-  { id: "depa",       tipo: "casa",     nombre: "Departamento",       emoji: "🏢",  costo: 220000, plusvalia: 0.015,  renta: 6500,  mantenimiento: 1200, unidades: 1, skillRenta: "bienes_raices",      desc: "Buena plusvalía en zona céntrica." },
-  { id: "duplex",     tipo: "casa",     nombre: "Dúplex (2 unidades)", emoji: "🏘️", costo: 380000, plusvalia: 0.016,  renta: 12000, mantenimiento: 2200, unidades: 2, skillRenta: "bienes_raices",      desc: "Dos viviendas para rentar por separado." },
-  { id: "edificio",   tipo: "casa",     nombre: "Edificio (6 deptos)", emoji: "🏨", costo: 950000, plusvalia: 0.018,  renta: 34000, mantenimiento: 6000, unidades: 6, skillRenta: "bienes_raices",      desc: "Varias habitaciones/unidades: gran ingreso por rentas." },
-  { id: "local",      tipo: "negocio",  nombre: "Local comercial",    emoji: "🏬",  costo: 360000, plusvalia: 0.018,  renta: 13000, mantenimiento: 1800, unidades: 1, skillRenta: "emprendimiento",     desc: "Réntalo o monta tu propio negocio." },
+  { id: "moto",       tipo: "vehiculo", nombre: "Motocicleta",        emoji: "🏍️", costo: 18000,  plusvalia: -0.010, renta: 1000,  mantenimiento: 250,  unidades: 1, skillRenta: "mecanica_basica",    desc: "Para repartos. Se deprecia, pero rentada deja flujo." },
+  { id: "auto",       tipo: "vehiculo", nombre: "Automóvil",          emoji: "🚗",  costo: 90000,  plusvalia: -0.008, renta: 4000,  mantenimiento: 700,  unidades: 1, skillRenta: "mecanica_basica",    desc: "Rentable para apps de transporte." },
+  { id: "camioneta",  tipo: "vehiculo", nombre: "Camioneta de carga", emoji: "🚚",  costo: 160000, plusvalia: -0.006, renta: 7000,  mantenimiento: 1100, unidades: 1, skillRenta: "mecanica_avanzada",  desc: "Ideal para fletes y negocio de carga." },
+  { id: "casa_chica", tipo: "casa",     nombre: "Casa pequeña",       emoji: "🏠",  costo: 120000, plusvalia: 0.012,  renta: 5600,  mantenimiento: 700,  unidades: 1, skillRenta: "bienes_raices",      desc: "Se revaloriza y puedes rentarla." },
+  { id: "depa",       tipo: "casa",     nombre: "Departamento",       emoji: "🏢",  costo: 200000, plusvalia: 0.015,  renta: 9500,  mantenimiento: 1100, unidades: 1, skillRenta: "bienes_raices",      desc: "Buena plusvalía en zona céntrica." },
+  { id: "duplex",     tipo: "casa",     nombre: "Dúplex (2 unidades)", emoji: "🏘️", costo: 360000, plusvalia: 0.016,  renta: 17500, mantenimiento: 2000, unidades: 2, skillRenta: "bienes_raices",      desc: "Dos viviendas para rentar por separado." },
+  { id: "edificio",   tipo: "casa",     nombre: "Edificio (6 deptos)", emoji: "🏨", costo: 900000, plusvalia: 0.018,  renta: 46000, mantenimiento: 5500, unidades: 6, skillRenta: "bienes_raices",      desc: "Varias habitaciones/unidades: gran ingreso por rentas." },
+  { id: "local",      tipo: "negocio",  nombre: "Local comercial",    emoji: "🏬",  costo: 340000, plusvalia: 0.018,  renta: 18000, mantenimiento: 1600, unidades: 1, skillRenta: "emprendimiento",     desc: "Réntalo o monta tu propio negocio." },
 ];
 // Multiplicador de renta según tus habilidades (escalado por su maestría).
 const boostRenta = (bien, habilidades, dominios = {}) => {
@@ -1352,7 +1355,7 @@ export default function RatRaceGame() {
   };
 
   const checkWin = useCallback((fin) => {
-    if (fin.activosPasivos >= fin.gastosMensuales) {
+    if (fin.activosPasivos >= gastoMeta(fin)) {
       playSound("win");
       try { localStorage.removeItem(SAVE_KEY); } catch {}
       setScreen("win");
@@ -1369,7 +1372,7 @@ export default function RatRaceGame() {
     if (total > 0 && interesMensual(fin) > total * 0.05) { setMentorTip(al(MENTOR_CONSEJOS.deudaCrece)); return; }
     if (bienSinRentar) { setMentorTip(al(MENTOR_CONSEJOS.mantenimientoAlto)); return; }
     if (total > fin.ingresoMensual * 2 && total > 0) { setMentorTip(MENTOR_TIPS.deudaAlta); return; }
-    if (fin.activosPasivos >= fin.gastosMensuales * 0.7 && fin.activosPasivos < fin.gastosMensuales) { setMentorTip(al(MENTOR_CONSEJOS.cercaLibertad)); return; }
+    if (fin.activosPasivos >= gastoMeta(fin) * 0.7 && fin.activosPasivos < gastoMeta(fin)) { setMentorTip(al(MENTOR_CONSEJOS.cercaLibertad)); return; }
     if (fin.gastosMensuales > fin.ingresoMensual + fin.activosPasivos && fin.ingresoMensual > 0) { setMentorTip(MENTOR_TIPS.gastosMayores); return; }
     if (fin.dinero < fin.gastosMensuales * 0.5) { setMentorTip(MENTOR_TIPS.sinAhorros); return; }
     if (eng.actual < 45) { setMentorTip(al(MENTOR_CONSEJOS.cuidaEnergia)); return; }
@@ -1914,7 +1917,7 @@ export default function RatRaceGame() {
   // Consejero: da un consejo contextual al pulsar el botón del mentor.
   const pedirConsejo = () => {
     if (!finances) return;
-    const f = finances, total = totalDeuda(f), pasivo = f.activosPasivos, gastos = f.gastosMensuales;
+    const f = finances, total = totalDeuda(f), pasivo = f.activosPasivos, gastos = gastoMeta(f);
     let cat = "general";
     const tieneRapidito = (f.deudas || []).some(d => d.bancoId === "rapidito");
     const bienSinRentar = (pertenencias || []).some(p => !p.rentando && (p.mantenimiento || 0) > 0);
@@ -1939,7 +1942,7 @@ export default function RatRaceGame() {
   if (!finances && screen === "game") return null;
 
   const flujoMensual = finances ? finances.ingresoMensual + finances.activosPasivos - finances.gastosMensuales : 0;
-  const progreso = finances ? Math.min(100, (finances.activosPasivos / Math.max(1, finances.gastosMensuales)) * 100) : 0;
+  const progreso = finances ? Math.min(100, (finances.activosPasivos / Math.max(1, gastoMeta(finances))) * 100) : 0;
   const rama = SKILL_TREE[activeRama];
 
   // ============================================================
@@ -1962,7 +1965,7 @@ export default function RatRaceGame() {
         <button onClick={() => { if (haySaved) borrarPartida(); setScreen("select"); }} style={{ background: haySaved ? C.surface : `linear-gradient(135deg, ${C.purple}, #9333EA)`, color: haySaved ? C.textSecondary : "white", border: haySaved ? `1px solid ${C.border}` : "none", borderRadius: 16, padding: "15px 48px", fontSize: 15, fontWeight: 700, cursor: "pointer", width: "100%", marginBottom: 12 }}>
           {haySaved ? "Empezar de nuevo" : "Comenzar →"}
         </button>
-        <p style={{ color: C.textMuted, fontSize: 11 }}>Meta: Ingresos pasivos {">"} Gastos mensuales</p>
+        <p style={{ color: C.textMuted, fontSize: 11 }}>Meta: Ingreso pasivo ≥ Gastos + interés de deudas</p>
       </div>
     </div>
   );
@@ -2227,6 +2230,12 @@ export default function RatRaceGame() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ color: C.textSecondary, fontSize: 13 }}>📊 Flujo mensual neto</span>
                 <span style={{ color: flujoMensual >= 0 ? C.green : C.red, fontWeight: 800, fontSize: 16 }}>{flujoMensual >= 0 ? "+" : ""}{fmt(flujoMensual)}</span>
+              </div>
+            </div>
+            <div style={{ background: `${C.purple}11`, border: `1px solid ${C.purple}33`, borderRadius: 12, padding: "11px 16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ color: C.textSecondary, fontSize: 12 }}>🎯 Meta de libertad (pasivo ≥ gastos + interés)</span>
+                <span style={{ color: C.purple, fontWeight: 800, fontSize: 14 }}>{fmt(finances.activosPasivos)} / {fmt(gastoMeta(finances))}</span>
               </div>
             </div>
             {seguimientos.length > 0 && (
