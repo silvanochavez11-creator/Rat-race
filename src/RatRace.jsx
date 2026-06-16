@@ -459,22 +459,22 @@ const EVENTO_OUTCOME_MAP = {
   e26: "contrato_grande",
   e27: "contrato_grande", };
 
-// Calculate success probability based on skills
-const calcProbabilidad = (outcomeConfig, habilidades, resultado) => {
+// Calculate success probability based on skills (escalado por la maestría de cada skill)
+const calcProbabilidad = (outcomeConfig, habilidades, resultado, dominios = {}) => {
   let prob = resultado.probabilidadBase;
   if (outcomeConfig.habilidadBonus) {
     Object.entries(outcomeConfig.habilidadBonus).forEach(([hId, bonus]) => {
-      if (habilidades.includes(hId)) prob += bonus;
+      if (habilidades.includes(hId)) prob += bonus * dominioMult(dominios, hId);
     });
   }
   return Math.min(prob, 95); };
 
-const resolveOutcome = (eventoId, habilidades, exp = 0, bonusExtra = 0) => {
+const resolveOutcome = (eventoId, habilidades, exp = 0, bonusExtra = 0, dominios = {}) => {
   const categoria = EVENTO_OUTCOME_MAP[eventoId];
   if (!categoria) return null;
   const config = OUTCOMES[categoria];
   // La experiencia y la calidad de tu negociación suben la probabilidad de ganar.
-  const totales = config.resultados.map(r => Math.max(1, calcProbabilidad(config, habilidades, r) + (r.tipo === "ganado" ? expBonusProb(exp) + bonusExtra : 0)));
+  const totales = config.resultados.map(r => Math.max(1, calcProbabilidad(config, habilidades, r, dominios) + (r.tipo === "ganado" ? expBonusProb(exp) + bonusExtra : 0)));
   const suma = totales.reduce((a, b) => a + b, 0);
   // La experiencia también mejora el pago de los contratos ganados.
   const conExp = (resultado, prob) => {
@@ -609,6 +609,20 @@ const expBonusProb = (exp) => (expNivel(exp) - 1) * 2;          // +2% de probab
 const expBonusPago = (exp) => 1 + (expNivel(exp) - 1) * 0.03;   // hasta +27% en los pagos
 
 // ============================================================
+// MAESTRÍA / DOMINIO por habilidad (nivel 1 a 20)
+// Cada habilidad que tienes sube de maestría con experiencia o con dinero.
+// A más maestría, más potente es esa habilidad (mejores bonos).
+// ============================================================
+const DOMINIO_MAX = 20;
+const COSTO_EXP_DOMINIO = 3;   // puntos de experiencia por mejora
+const dominioDe = (dominios, id) => Math.min(DOMINIO_MAX, (dominios && dominios[id]) || 1);
+// Multiplicador del bono de una habilidad según su maestría (1.0 en nivel 1 → 1.95 en nivel 20).
+const dominioMult = (dominios, id) => 1 + (dominioDe(dominios, id) - 1) * 0.05;
+// Costo en dinero de mejorar (escala con el costo de la skill y su maestría actual).
+const costoDineroDominio = (skill, dominios) => Math.round((skill.costo || 1000) * 0.30 * dominioDe(dominios, skill.id));
+const costoEspecialDominio = (skill, dominios) => Math.round((skill.costo || 1000) * 0.60 * dominioDe(dominios, skill.id));
+
+// ============================================================
 // MERCADO DE PERTENENCIAS (vehículos, casas, negocios)
 // plusvalia: cuánto cambia su valor cada mes (+ sube, - se deprecia)
 // renta: ingreso pasivo mensual si decides rentarlo
@@ -624,16 +638,17 @@ const MERCADO_BIENES = [
   { id: "edificio",   tipo: "casa",     nombre: "Edificio (6 deptos)", emoji: "🏨", costo: 950000, plusvalia: 0.018,  renta: 34000, mantenimiento: 6000, unidades: 6, skillRenta: "bienes_raices",      desc: "Varias habitaciones/unidades: gran ingreso por rentas." },
   { id: "local",      tipo: "negocio",  nombre: "Local comercial",    emoji: "🏬",  costo: 360000, plusvalia: 0.018,  renta: 13000, mantenimiento: 1800, unidades: 1, skillRenta: "emprendimiento",     desc: "Réntalo o monta tu propio negocio." },
 ];
-// Multiplicador de renta según tus habilidades (tus skills te ayudan a rendir más).
-const boostRenta = (bien, habilidades) => {
+// Multiplicador de renta según tus habilidades (escalado por su maestría).
+const boostRenta = (bien, habilidades, dominios = {}) => {
   let mult = 1;
-  if (bien.skillRenta && habilidades.includes(bien.skillRenta)) mult += 0.30;
-  if (bien.tipo === "casa" && habilidades.includes("bienes_raices")) mult += 0.20;
-  if (bien.tipo === "negocio" && habilidades.includes("agencia_marketing")) mult += 0.30;
-  if (bien.tipo === "vehiculo" && habilidades.includes("mecanica_avanzada")) mult += 0.15;
+  const add = (id, base) => { if (habilidades.includes(id)) mult += base * dominioMult(dominios, id); };
+  if (bien.skillRenta) add(bien.skillRenta, 0.30);
+  if (bien.tipo === "casa") add("bienes_raices", 0.20);
+  if (bien.tipo === "negocio") add("agencia_marketing", 0.30);
+  if (bien.tipo === "vehiculo") add("mecanica_avanzada", 0.15);
   return mult;
 };
-const rentaEfectiva = (bien, habilidades) => Math.round((bien.rentaBase ?? bien.renta) * boostRenta(bien, habilidades));
+const rentaEfectiva = (bien, habilidades, dominios = {}) => Math.round((bien.rentaBase ?? bien.renta) * boostRenta(bien, habilidades, dominios));
 
 // ============================================================
 // SONIDO (Web Audio API, sin archivos) — beeps generados
@@ -689,6 +704,13 @@ const fmt = (n) => new Intl.NumberFormat("es-MX", { style: "currency", currency:
 const getCicloLabel = (c) => ({ diario: "Día", semanal: "Semana", quincenal: "Quincena", mensual: "Mes" }[c]);
 // Cuánto representa un ciclo respecto a un mes (para escalar interés, plusvalía, etc.)
 const factorDe = (ciclo) => ciclo === "diario" ? 1/30 : ciclo === "semanal" ? 1/4 : ciclo === "quincenal" ? 1/2 : 1;
+
+// Estilo para los botones de mejora de maestría
+const btnDom = (enabled, bg, color) => ({
+  flex: 1, background: enabled ? bg : C.surface, color: enabled ? color : C.textMuted,
+  border: `1px solid ${C.border}`, borderRadius: 8, padding: "6px 2px", fontSize: 10, fontWeight: 700,
+  lineHeight: 1.2, cursor: enabled ? "pointer" : "not-allowed", opacity: enabled ? 1 : 0.45, textAlign: "center",
+});
 
 // Estilo reutilizable para los botones de la pestaña de deudas
 const btnDeuda = (enabled, bg, color) => ({
@@ -1025,6 +1047,7 @@ export default function RatRaceGame() {
   const [prestamoBanco, setPrestamoBanco] = useState("credimax");
   const [experiencia, setExperiencia] = useState(0);
   const [pertenencias, setPertenencias] = useState([]);
+  const [dominios, setDominios] = useState({});      // maestría 1-20 por habilidad
   const [objecion, setObjecion] = useState(null);   // diálogo de negociación activo
   const [negPend, setNegPend] = useState(null);      // trato pendiente de resolver tras negociar
   const [inquilino, setInquilino] = useState(null);   // negociación con inquilino al rentar
@@ -1081,6 +1104,9 @@ export default function RatRaceGame() {
     setHabilidades([...p.habilidades]);
     setFinances({ ...p.finances, deudas: deudaInicial(p) });
     setEnergia({ ...p.energia });
+    // Cada habilidad inicial empieza con maestría 1.
+    const dom0 = {}; p.habilidades.forEach(id => { dom0[id] = 1; });
+    setDominios(dom0);
     setCiclo(0); setLog([]); setSeguimientos([]); setOutcome(null);
     setExperiencia(0); setPertenencias([]); setScreen("game");
     sfx("click");
@@ -1090,11 +1116,11 @@ export default function RatRaceGame() {
   useEffect(() => {
     if (screen !== "game" || !finances || !profile) return;
     try {
-      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias };
+      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios };
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
       setHaySaved(true);
     } catch {}
-  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias]);
+  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios]);
 
   // Cargar la partida guardada y continuar.
   const continuarPartida = () => {
@@ -1108,6 +1134,9 @@ export default function RatRaceGame() {
       setFinances(fin);
       setEnergia(data.energia); setCiclo(data.ciclo); setLog(data.log || []); setSeguimientos(data.seguimientos || []);
       setExperiencia(data.experiencia || 0); setPertenencias(data.pertenencias || []);
+      // Compatibilidad: si una partida vieja no tiene maestrías, las creamos en 1.
+      const dom = data.dominios || {}; (data.habilidades || []).forEach(id => { if (!dom[id]) dom[id] = 1; });
+      setDominios(dom);
       setScreen("game"); sfx("click");
     } catch {}
   };
@@ -1238,7 +1267,7 @@ export default function RatRaceGame() {
         return;
       }
       // Tomar el trato directo: se resuelve con probabilidad por skills y experiencia.
-      const resolved = resolveOutcome(evento.id, habilidades, experiencia);
+      const resolved = resolveOutcome(evento.id, habilidades, experiencia, 0, dominios);
       if (resolved) {
         setEvento(null);
         procesarResolved(evento, imp, resolved);
@@ -1311,10 +1340,10 @@ export default function RatRaceGame() {
     setObjecion(null); setNegPend(null);
     if (!pend) return;
     let bonus = [-8, 4, 14, 22][score] ?? 0;
-    // Las habilidades de comunicación te ayudan a convencer mejor.
-    if (habilidades.includes("oratoria")) bonus += 4;
-    if (habilidades.includes("lenguaje_corporal")) bonus += 4;
-    const resolved = resolveOutcome(pend.ev.id, habilidades, experiencia, bonus);
+    // Las habilidades de comunicación te ayudan a convencer mejor (escaladas por su maestría).
+    if (habilidades.includes("oratoria")) bonus += 4 * dominioMult(dominios, "oratoria");
+    if (habilidades.includes("lenguaje_corporal")) bonus += 4 * dominioMult(dominios, "lenguaje_corporal");
+    const resolved = resolveOutcome(pend.ev.id, habilidades, experiencia, bonus, dominios);
     if (resolved) procesarResolved(pend.ev, pend.imp, resolved);
   };
 
@@ -1326,10 +1355,34 @@ export default function RatRaceGame() {
     setFinances(prev => ({ ...prev, dinero: prev.dinero - skill.costo, activosPasivos: prev.activosPasivos + (skill.ingresoPasivo || 0), ingresoMensual: prev.ingresoMensual + (skill.ingresoMensual || 0) }));
     setEnergia(prev => ({ ...prev, actual: Math.max(0, prev.actual - skill.energiaCosto) }));
     setHabilidades(prev => [...prev, skill.id]);
+    setDominios(prev => ({ ...prev, [skill.id]: 1 }));   // empieza con maestría 1
     const extra = skill.ingresoPasivo ? ` (+${fmt(skill.ingresoPasivo)}/mes pasivo)` : skill.ingresoMensual ? ` (+${fmt(skill.ingresoMensual)}/mes en clientes)` : "";
     addLog(`${skill.ingresoPasivo ? "Formaste un negocio" : "Aprendiste"}: ${skill.nombre}${extra}`, "success");
     showNotif(skill.ingresoPasivo ? `🏢 Negocio creado:${extra}` : skill.ingresoMensual ? `📣 Clientes nuevos:${extra}` : `✓ ${skill.nombre} desbloqueada`, C.green);
     sfx("success");
+  };
+
+  // Mejora la maestría de una habilidad. modo: "exp" (+0.15, cuesta experiencia),
+  // "dinero" (+0.5) o "especial" (+1.0, más caro).
+  const mejorarDominio = (skill, modo) => {
+    const actual = dominioDe(dominios, skill.id);
+    if (actual >= DOMINIO_MAX) { showNotif("¡Maestría al máximo (20)!", C.yellow); return; }
+    let inc = 0;
+    if (modo === "exp") {
+      if (experiencia < COSTO_EXP_DOMINIO) { showNotif(`Necesitas ${COSTO_EXP_DOMINIO} de experiencia`, C.yellow); return; }
+      setExperiencia(e => Math.max(0, e - COSTO_EXP_DOMINIO));
+      inc = 0.15;
+    } else {
+      const costo = modo === "especial" ? costoEspecialDominio(skill, dominios) : costoDineroDominio(skill, dominios);
+      if (finances.dinero < costo) { showNotif("Sin dinero suficiente", C.red); return; }
+      setFinances(prev => ({ ...prev, dinero: prev.dinero - costo }));
+      inc = modo === "especial" ? 1.0 : 0.5;
+    }
+    const nuevo = Math.min(DOMINIO_MAX, Math.round((actual + inc) * 100) / 100);
+    setDominios(prev => ({ ...prev, [skill.id]: nuevo }));
+    addLog(`Maestría de ${skill.nombre}: ${actual.toFixed(2)} → ${nuevo.toFixed(2)} (×${dominioMult({ [skill.id]: nuevo }, skill.id).toFixed(2)})`, "success");
+    showNotif(`📈 ${skill.nombre} maestría ${nuevo.toFixed(2)}/20`, C.green);
+    sfx(modo === "exp" ? "click" : "pay");
   };
 
   const descansar = () => {
@@ -1422,7 +1475,7 @@ export default function RatRaceGame() {
       addLog(`Dejaste de rentar ${p.nombre}`, "info");
       showNotif("Dejaste de rentar", C.blue);
     } else {
-      setInquilino({ id, base: rentaEfectiva(p, habilidades), nombre: p.nombre, emoji: p.emoji });
+      setInquilino({ id, base: rentaEfectiva(p, habilidades, dominios), nombre: p.nombre, emoji: p.emoji });
       sfx("click");
     }
   };
@@ -1848,7 +1901,7 @@ export default function RatRaceGame() {
             ) : (
               pertenencias.map(p => {
                 const ganancia = p.valorActual - p.valorCompra;
-                const rentaPot = rentaEfectiva(p, habilidades);
+                const rentaPot = rentaEfectiva(p, habilidades, dominios);
                 return (
                   <div key={p.id} style={{ background: C.card, borderRadius: 12, padding: "13px 16px", border: `1px solid ${p.rentando ? C.green + "66" : C.border}` }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
@@ -1900,7 +1953,7 @@ export default function RatRaceGame() {
             <div style={{ fontSize: 11, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>🏪 Mercado</div>
             {MERCADO_BIENES.map(b => {
               const puede = finances.dinero >= b.costo;
-              const rentaPot = rentaEfectiva(b, habilidades);
+              const rentaPot = rentaEfectiva(b, habilidades, dominios);
               const tipoLabel = { vehiculo: "🚗 Vehículo", casa: "🏠 Inmueble", negocio: "🏢 Negocio" }[b.tipo];
               const plus = b.plusvalia >= 0 ? `+${(b.plusvalia * 100).toFixed(1)}%/mes` : `${(b.plusvalia * 100).toFixed(1)}%/mes`;
               return (
@@ -1950,8 +2003,34 @@ export default function RatRaceGame() {
                 const comprada = habilidades.includes(skill.id);
                 const puedePagar = finances.dinero >= skill.costo;
                 const puedeCursar = !skill.requiere || habilidades.includes(skill.requiere);
+                const dom = dominioDe(dominios, skill.id);
+                const cDinero = costoDineroDominio(skill, dominios);
+                const cEspecial = costoEspecialDominio(skill, dominios);
+                const maxed = dom >= DOMINIO_MAX;
                 return (
-                  <SkillNode key={skill.id} skill={skill} comprada={comprada} puedePagar={puedePagar} puedeCursar={puedeCursar} ramaColor={rama.color} onComprar={aprenderHabilidad} energiaActual={energia.actual} />
+                  <div key={skill.id}>
+                    <SkillNode skill={skill} comprada={comprada} puedePagar={puedePagar} puedeCursar={puedeCursar} ramaColor={rama.color} onComprar={aprenderHabilidad} energiaActual={energia.actual} />
+                    {comprada && (
+                      <div style={{ background: C.surface, border: `1px solid ${rama.color}33`, borderTop: "none", borderRadius: "0 0 10px 10px", padding: "8px 12px", marginTop: -4 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.textSecondary, marginBottom: 4 }}>
+                          <span>🏅 Maestría <strong style={{ color: rama.color }}>{dom.toFixed(2)}/20</strong></span>
+                          <span style={{ color: C.green }}>potencia ×{dominioMult(dominios, skill.id).toFixed(2)}</span>
+                        </div>
+                        <div style={{ background: C.border, borderRadius: 99, height: 5, overflow: "hidden", marginBottom: 8 }}>
+                          <div style={{ width: `${(dom / DOMINIO_MAX) * 100}%`, background: rama.color, height: "100%", borderRadius: 99, transition: "width 0.4s ease" }} />
+                        </div>
+                        {maxed ? (
+                          <div style={{ fontSize: 10, color: C.yellow, textAlign: "center" }}>⭐ Maestría máxima alcanzada</div>
+                        ) : (
+                          <div style={{ display: "flex", gap: 5 }}>
+                            <button onClick={() => mejorarDominio(skill, "exp")} disabled={experiencia < COSTO_EXP_DOMINIO} style={btnDom(experiencia >= COSTO_EXP_DOMINIO, `${C.orange}22`, C.orange)}>🎓 +0.15<br /><span style={{ fontSize: 8 }}>{COSTO_EXP_DOMINIO} exp</span></button>
+                            <button onClick={() => mejorarDominio(skill, "dinero")} disabled={finances.dinero < cDinero} style={btnDom(finances.dinero >= cDinero, C.card, C.textPrimary)}>💵 +0.5<br /><span style={{ fontSize: 8 }}>{fmt(cDinero)}</span></button>
+                            <button onClick={() => mejorarDominio(skill, "especial")} disabled={finances.dinero < cEspecial} style={btnDom(finances.dinero >= cEspecial, `${C.green}22`, C.green)}>⭐ +1.0<br /><span style={{ fontSize: 8 }}>{fmt(cEspecial)}</span></button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

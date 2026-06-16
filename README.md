@@ -33,6 +33,10 @@ npm run preview  # sirve la versión de producción para probarla
   (agencia de marketing, escalar) **forman una empresa que genera ingreso pasivo**.
 - **Experiencia (nivel 1 a 10)**: sube con las semanas trabajadas y los trabajos
   hechos. A mayor nivel, **más probabilidad de éxito y mejores pagos** en contratos.
+- **Maestría por habilidad (1 a 20)**: cada habilidad que tienes sube de maestría
+  y se vuelve más potente. La mejoras de 3 formas: 🎓 con **experiencia** (+0.15,
+  gasta puntos de experiencia), 💵 con **dinero** (+0.5) o ⭐ una **mejora especial**
+  más cara (+1.0). A más maestría, mejores contratos, rentas y negociaciones.
 - **Pertenencias 🏠🚗**: compra vehículos, casas, dúplex, **edificios de varias
   unidades** y negocios. Tienen **plusvalía** (las casas suben de valor, los
   vehículos se deprecian) y eliges si los **rentas** o los **vendes**.
