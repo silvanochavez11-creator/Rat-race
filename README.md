@@ -25,6 +25,9 @@ npm run preview  # sirve la versión de producción para probarla
 
 ## 🎮 Mecánicas del juego
 
+- **3 niveles de dificultad** (Fácil / Normal / Difícil) que escalan tus gastos
+  iniciales, la **inflación** (tus gastos suben con el tiempo) y la frecuencia de
+  imprevistos. ¡En Difícil hay que moverse rápido!
 - **4 perfiles** para empezar: Estudiante, Freelancer, Empleado y Doctor/Profesionista.
   Cada uno con distinto dinero, deudas, habilidades y dificultad.
 - **Árbol de habilidades** de varios nichos (Oficios, Digital, Ventas, Finanzas,

@@ -210,8 +210,8 @@ const EVENTOS = [
   { id: "e35", tipo: "gasto", titulo: "Cumpleaños y compromisos", descripcion: "Mes de fiestas, regalos y compromisos sociales.", opciones: ["Gastar moderado $800", "Quedarte en casa", "Tirar la casa por la ventana $2,500"], impacto: [{ dinero: -800, energia: 10 }, { energia: 20 }, { dinero: -2500, energia: 25 }], emoji: "🎂", requiereHabilidad: null },
   { id: "e36", tipo: "oportunidad", titulo: "Apoyo del gobierno", descripcion: "Sale un programa de apoyo o estímulo. Puedes aprovecharlo.", opciones: ["Tomar el apoyo $2,500", "No calificas", "Apoyo a negocio $4,000"], impacto: [{ dinero: 2500, energia: 0 }, { energia: 0 }, { dinero: 4000, energia: -5 }], emoji: "🎫", requiereHabilidad: null },
   // Oportunidades de INMUEBLES (requieren la habilidad de bienes raíces; ventas ayuda con inquilinos)
-  { id: "i1", tipo: "inmueble", bienId: "casa_chica", descuento: 0.9,  titulo: "Casa en remate", descripcion: "Una casa en remate, 10% bajo precio. Necesitas bienes raíces (y ventas ayuda con inquilinos). Cómprala o finánciala.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -10 }, { energia: 0 }, { energia: -10 }], emoji: "🏠", requiereHabilidad: "bienes_raices" },
-  { id: "i2", tipo: "inmueble", bienId: "depa", descuento: 0.92, titulo: "Departamento de oportunidad", descripcion: "Departamento céntrico con descuento. Requiere bienes raíces. Págalo o finánicialo si no te alcanza.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -10 }, { energia: 0 }, { energia: -10 }], emoji: "🏢", requiereHabilidad: "bienes_raices" },
+  { id: "i1", tipo: "inmueble", bienId: "casa_chica", descuento: 0.9,  titulo: "Casa en remate", descripcion: "Una casa en remate, 10% bajo precio. Cómprala de contado o finánciala con un préstamo si no te alcanza.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -10 }, { energia: 0 }, { energia: -10 }], emoji: "🏠", requiereHabilidad: "presupuesto" },
+  { id: "i2", tipo: "inmueble", bienId: "depa", descuento: 0.92, titulo: "Departamento de oportunidad", descripcion: "Departamento céntrico con descuento. Págalo o finánicialo si no te alcanza.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -10 }, { energia: 0 }, { energia: -10 }], emoji: "🏢", requiereHabilidad: "inversion_basica" },
   { id: "i3", tipo: "inmueble", bienId: "duplex", descuento: 0.9,  titulo: "Dúplex para rentar", descripcion: "Dos unidades para rentar por separado. Requiere bienes raíces. Buen flujo si consigues inquilinos.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -12 }, { energia: 0 }, { energia: -12 }], emoji: "🏘️", requiereHabilidad: "bienes_raices" },
   { id: "i4", tipo: "inmueble", bienId: "edificio", descuento: 0.93, titulo: "Edificio en venta", descripcion: "Un edificio de 6 deptos. Gran inversión. Casi nadie lo paga de contado: financíalo y réntalo.", opciones: ["Comprar de contado", "Rechazar", "Financiar con préstamo"], impacto: [{ energia: -15 }, { energia: 0 }, { energia: -15 }], emoji: "🏨", requiereHabilidad: "bienes_raices" },
   // Eventos médicos (para profesionistas de la salud)
@@ -233,7 +233,10 @@ const EVENTOS = [
   { id: "est1", soloPerfil: "estudiante", tipo: "oportunidad", titulo: "Beca o apoyo", descripcion: "Sale una beca o apoyo gubernamental. ¡Dinero sin deuda!", opciones: ["Recibir beca $2,000", "No calificas", "Beca grande $3,500"], impacto: [{ dinero: 2000, energia: 5 }, { energia: 0 }, { dinero: 3500, energia: -5 }], emoji: "🎓", requiereHabilidad: null },
   { id: "est2", soloPerfil: "estudiante", tipo: "black_swan", titulo: "Examen reprobado", descripcion: "Reprobaste una materia. Toca recuperar tiempo y energía.", opciones: ["Estudiar duro", "Aceptarlo", "Pagar curso $1,000"], impacto: [{ energia: -25 }, { energia: -10 }, { dinero: -1000, energia: 5 }], emoji: "📕", requiereHabilidad: null },
   { id: "est3", soloPerfil: "estudiante", tipo: "chamba", titulo: "Amigo con negocio", descripcion: "Un amigo te invita a trabajar o asociarte en su negocio.", opciones: ["Trabajar informal $900", "Pasar", "Asociarte $2,000"], impacto: [{ dinero: 900, energia: -20 }, { energia: 0 }, { dinero: -2000, ingreso: 1200, energia: -15 }], emoji: "🤝", requiereHabilidad: null },
-  { id: "est4", soloPerfil: "estudiante", tipo: "chamba", titulo: "Tu primera venta", descripcion: "¡Hiciste tu primera venta! Pequeña, pero te da confianza y experiencia.", opciones: ["¡Celebrarlo!", "Restarle importancia", "Reinvertir las ganancias"], impacto: [{ dinero: 500, energia: 10 }, { energia: 0 }, { dinero: 300, ingreso: 400, energia: -5 }], emoji: "🎉", requiereHabilidad: null }, ];
+  { id: "est4", soloPerfil: "estudiante", tipo: "chamba", titulo: "Tu primera venta", descripcion: "¡Hiciste tu primera venta! Pequeña, pero te da confianza y experiencia.", opciones: ["¡Celebrarlo!", "Restarle importancia", "Reinvertir las ganancias"], impacto: [{ dinero: 500, energia: 10 }, { energia: 0 }, { dinero: 300, ingreso: 400, energia: -5 }], emoji: "🎉", requiereHabilidad: null },
+  // Eventos de cliente SIN requisito: para que TODOS puedan negociar / presentar proyectos
+  { id: "nc1", tipo: "oportunidad", titulo: "Te recomiendan con un cliente", descripcion: "Un conocido te recomendó. El cliente quiere hablar contigo. Si NEGOCIAS, podrás convencerlo con tus respuestas.", opciones: ["Tomar el proyecto", "Rechazar", "Negociar el precio"], impacto: [{ dinero: 2500, energia: -15 }, { dinero: 0, energia: 0 }, { dinero: 4200, energia: -25 }], emoji: "🤝", requiereHabilidad: null },
+  { id: "nc2", tipo: "oportunidad", titulo: "Presenta tu proyecto", descripcion: "Una empresa te deja presentar tu propuesta ante su equipo. NEGOCIA para defenderla y cerrar mejor.", opciones: ["Presentar la propuesta", "No presentar", "Presentar y negociar"], impacto: [{ dinero: 4000, ingreso: 1000, energia: -20 }, { dinero: 0, energia: 0 }, { dinero: 6500, ingreso: 1800, energia: -30 }], emoji: "📊", requiereHabilidad: null }, ];
 
 // ============================================================
 // OBJECTION / NEGOTIATION SYSTEM
@@ -527,7 +530,9 @@ const EVENTO_OUTCOME_MAP = {
   m1: "chamba_oficio",
   m2: "chamba_oficio",
   m3: "contrato_grande",
-  m4: "contrato_grande", };
+  m4: "contrato_grande",
+  nc1: "cliente_potencial",
+  nc2: "contrato_grande", };
 
 // Calculate success probability based on skills (escalado por la maestría de cada skill)
 const calcProbabilidad = (outcomeConfig, habilidades, resultado, dominios = {}) => {
@@ -621,6 +626,26 @@ const MENTOR_CONSEJOS = {
   diversifica: [
     "🧺 No pongas todos los huevos en una canasta: combina rentas, negocios e inversiones.",
     "🌍 Distintas fuentes de ingreso pasivo te protegen cuando una falla (un mes sin ventas, un inquilino que se va).",
+    "🔀 Si todo tu ingreso viene de una sola fuente, eres frágil. Suma una segunda y una tercera.",
+  ],
+  negociar: [
+    "🗣️ Cuando un cliente te ofrezca un trato, prueba 'Negociar': con buenas respuestas cierras por más.",
+    "🎯 No bajes el precio a la primera. Pregunta qué necesita el cliente y muestra el valor.",
+    "🤝 Las habilidades de Ventas (oratoria, cierre, lenguaje corporal) suben tu probabilidad de cerrar.",
+    "📊 Presentar tu proyecto y defenderlo bien vale más que el proyecto en sí.",
+  ],
+  habilidades: [
+    "🌳 Sube la MAESTRÍA de tus habilidades clave: una skill al nivel 20 vale casi el doble.",
+    "🎓 Tu rama recomendada cuesta −25%: especialízate en lo tuyo antes de explorar otras ramas.",
+    "🧠 Invertir en ti mismo (habilidades) es la inversión con mayor retorno que existe.",
+  ],
+  velocidad: [
+    "⏱️ El tiempo cuenta: entre más rápido salgas de la carrera, mejor lugar en la tabla. No te duermas.",
+    "🔥 En dificultad alta, la inflación sube tus gastos cada mes. Construye ingreso pasivo rápido.",
+  ],
+  energia2: [
+    "🔋 La habilidad 'Productividad' hace que cada ciclo te canse menos. Vale oro si trabajas mucho.",
+    "🌴 Descansar cuesta un poco, pero trabajar agotado rinde menos. Equilibra.",
   ],
   general: [
     "🧠 Riqueza no es cuánto ganas, sino cuánto conservas y haces crecer.",
@@ -631,6 +656,12 @@ const MENTOR_CONSEJOS = {
     "🤝 En una negociación, quien pregunta manda. Entiende al otro antes de proponer.",
     "📉 Prepárate para los imprevistos: un fondo de emergencia te salva de pedir prestado caro.",
     "🚀 Reinvierte tus ganancias: un negocio que crece hoy te da libertad mañana.",
+    "🏦 Paga tus deudas para subir tu historial crediticio: con mejor crédito, los bancos te prestan más.",
+    "🏘️ ¿Viste una 'Casa en remate' o un 'Departamento de oportunidad'? Puedes financiarlos aunque no tengas el dinero completo.",
+    "💼 Cada profesión tiene su camino: el doctor su clínica, el freelancer su agencia. Crece en lo tuyo.",
+    "🧮 Mide todo: si un activo no te rinde más de lo que cuesta mantenerlo, no es activo, es lastre.",
+    "🐀 El sueldo te mantiene vivo; los activos te hacen libre. No confundas estar ocupado con ser rico.",
+    "💸 Págate a ti primero: aparta para invertir ANTES de gastar, no con lo que sobra.",
   ],
 };
 
@@ -805,6 +836,19 @@ const fmt = (n) => new Intl.NumberFormat("es-MX", { style: "currency", currency:
 const getCicloLabel = (c) => ({ diario: "Día", semanal: "Semana", quincenal: "Quincena", mensual: "Mes" }[c]);
 // Cuánto representa un ciclo respecto a un mes (para escalar interés, plusvalía, etc.)
 const factorDe = (ciclo) => ciclo === "diario" ? 1/30 : ciclo === "semanal" ? 1/4 : ciclo === "quincenal" ? 1/2 : 1;
+
+// ============================================================
+// NIVEL DE DIFICULTAD (elegido por el jugador al empezar)
+// gastosMult: escala tus gastos al iniciar
+// inflacion: cuánto suben tus gastos cada mes (presión con el tiempo)
+// swan: cuántos imprevistos (black swans) aparecen
+// ============================================================
+const DIFICULTADES = {
+  facil:   { id: "facil",   label: "Fácil",   emoji: "😌", gastosMult: 0.85, inflacion: 0.000, swan: 0.5, color: "#34D399", desc: "Gastos más bajos, sin inflación y pocos imprevistos." },
+  normal:  { id: "normal",  label: "Normal",  emoji: "⚖️", gastosMult: 1.00, inflacion: 0.004, swan: 1.0, color: "#FFD166", desc: "Equilibrado. Tus gastos suben un poco con el tiempo." },
+  dificil: { id: "dificil", label: "Difícil", emoji: "🔥", gastosMult: 1.30, inflacion: 0.012, swan: 1.8, color: "#FF4D6A", desc: "Gastos altos, inflación fuerte y muchos imprevistos." },
+};
+const getDificultad = (id) => DIFICULTADES[id] || DIFICULTADES.normal;
 
 // Estilo para los botones de mejora de maestría
 const btnDom = (enabled, bg, color) => ({
@@ -1148,6 +1192,7 @@ export default function RatRaceGame() {
   const [muted, setMuted] = useState(() => { try { return localStorage.getItem("ratrace_muted") === "1"; } catch { return false; } });
   const [haySaved, setHaySaved] = useState(() => { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } });
   const [prestamoBanco, setPrestamoBanco] = useState("credimax");
+  const [nivelDificultad, setNivelDificultad] = useState("normal");
   const [experiencia, setExperiencia] = useState(0);
   const [puntosMaestria, setPuntosMaestria] = useState(0);  // puntos que se gastan en maestría (independientes del nivel)
   const [credito, setCredito] = useState(20);               // historial crediticio 0-100
@@ -1202,6 +1247,7 @@ export default function RatRaceGame() {
       const id = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
       const entry = {
         id, perfil: profile.name, emoji: profile.emoji, dificultad: profile.dificultad,
+        nivelEmoji: getDificultad(nivelDificultad).emoji, nivelLabel: getDificultad(nivelDificultad).label,
         ciclo, cicloLabel: getCicloLabel(profile.ciclo),
         tiempoMeses: Math.round(ciclo * factorDe(profile.ciclo) * 10) / 10,
         pasivo: finances.activosPasivos, fecha: Date.now(),
@@ -1246,7 +1292,11 @@ export default function RatRaceGame() {
     if (fin.dinero < fin.gastosMensuales * 0.5) { setMentorTip(MENTOR_TIPS.sinAhorros); return; }
     if (eng.actual < 45) { setMentorTip(al(MENTOR_CONSEJOS.cuidaEnergia)); return; }
     if (fin.activosPasivos === 0) { setMentorTip(al(MENTOR_CONSEJOS.pocoActivo)); return; }
-    if (Math.random() < 0.45) setMentorTip(al(MENTOR_CONSEJOS.general));
+    if (Math.random() < 0.5) {
+      const cats = ["general", "negociar", "habilidades", "diversifica", "velocidad", "general"];
+      const c = cats[Math.floor(Math.random() * cats.length)];
+      setMentorTip(al(MENTOR_CONSEJOS[c] || MENTOR_CONSEJOS.general));
+    }
   }, []);
 
   // Convierte la deuda inicial (un número) en deudas por banco según el perfil.
@@ -1261,7 +1311,9 @@ export default function RatRaceGame() {
   const startGame = (p) => {
     setProfile(p); setStats({ ...p.stats });
     setHabilidades([...p.habilidades]);
-    setFinances({ ...p.finances, deudas: deudaInicial(p) });
+    // La dificultad escala tus gastos iniciales.
+    const dif = getDificultad(nivelDificultad);
+    setFinances({ ...p.finances, deudas: deudaInicial(p), gastosMensuales: Math.round(p.finances.gastosMensuales * dif.gastosMult) });
     setEnergia({ ...p.energia });
     // Cada habilidad inicial empieza con maestría 1.
     const dom0 = {}; p.habilidades.forEach(id => { dom0[id] = 1; });
@@ -1278,11 +1330,11 @@ export default function RatRaceGame() {
   useEffect(() => {
     if (screen !== "game" || !finances || !profile) return;
     try {
-      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito };
+      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito, nivelDificultad };
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
       setHaySaved(true);
     } catch {}
-  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito]);
+  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito, nivelDificultad]);
 
   // Cargar la partida guardada y continuar.
   const continuarPartida = () => {
@@ -1298,6 +1350,7 @@ export default function RatRaceGame() {
       setExperiencia(data.experiencia || 0); setPertenencias(data.pertenencias || []);
       setPuntosMaestria(data.puntosMaestria ?? (data.experiencia || 0));   // compat: usa la exp previa como puntos iniciales
       setCredito(data.credito ?? 20);
+      setNivelDificultad(data.nivelDificultad || "normal");
       // Compatibilidad: si una partida vieja no tiene maestrías, las creamos en 1.
       const dom = data.dominios || {}; (data.habilidades || []).forEach(id => { if (!dom[id]) dom[id] = 1; });
       setDominios(dom);
@@ -1315,9 +1368,12 @@ export default function RatRaceGame() {
     sfx("click");
     setCyclePulse(p => p + 1);
 
+    const dif = getDificultad(nivelDificultad);
     setFinances(prev => {
       const nuevo = { ...prev };
       const factor = profile.ciclo === "diario" ? 1/30 : profile.ciclo === "semanal" ? 1/4 : profile.ciclo === "quincenal" ? 1/2 : 1;
+      // Inflación: tus gastos suben un poco cada mes (según la dificultad).
+      if (dif.inflacion) nuevo.gastosMensuales = Math.round(nuevo.gastosMensuales * (1 + dif.inflacion * factor));
       nuevo.dinero += (nuevo.ingresoMensual + nuevo.activosPasivos - nuevo.gastosMensuales) * factor;
       // Deudas: cada banco cobra su interés (aumenta el saldo) y se hace un pago
       // mínimo automático del 5% del saldo, limitado por el efectivo disponible.
@@ -1365,14 +1421,19 @@ export default function RatRaceGame() {
       const sinHabilidad = DISP.filter(e => !e.requiereHabilidad);
       const sinSkillPeroVisible = DISP.filter(e => e.requiereHabilidad && !habilidades.includes(e.requiereHabilidad));
 
-      // Build weighted pool
+      // Build weighted pool. Los imprevistos (black swans) se ponderan aparte
+      // según la dificultad, así que aquí los excluimos del peso base.
       let pool = [];
       // If skills unlocked → those events appear more (3x weight)
-      conHabilidad.forEach(e => { pool.push(e); pool.push(e); pool.push(e); });
+      conHabilidad.filter(e => e.tipo !== "black_swan").forEach(e => { pool.push(e); pool.push(e); pool.push(e); });
       // Universal events always available
-      sinHabilidad.forEach(e => { pool.push(e); pool.push(e); });
-      // Locked events appear rarely (tease the player)
-      if (Math.random() < 0.2) {
+      sinHabilidad.filter(e => e.tipo !== "black_swan").forEach(e => { pool.push(e); pool.push(e); });
+      // Imprevistos según dificultad (más en difícil, menos en fácil)
+      const swanCopias = Math.max(0, Math.round(dif.swan * 2));
+      DISP.filter(e => e.tipo === "black_swan" && (!e.requiereHabilidad || habilidades.includes(e.requiereHabilidad)))
+        .forEach(e => { for (let k = 0; k < swanCopias; k++) pool.push(e); });
+      // Locked events appear sometimes (tease the player)
+      if (Math.random() < 0.25) {
         sinSkillPeroVisible.forEach(e => pool.push(e));
       }
 
@@ -1764,7 +1825,11 @@ export default function RatRaceGame() {
     else if (energia.actual < 45) cat = "cuidaEnergia";
     else if (pasivo === 0) cat = "pocoActivo";
     else if (habilidades.includes("bienes_raices") && pertenencias.length === 0) cat = "inmueble";
-    else if (flujoMensual > 0) cat = (Math.random() < 0.5 ? "buenFlujo" : "diversifica");
+    else {
+      // Variedad: rota entre varios temas útiles
+      const opciones = ["buenFlujo", "diversifica", "negociar", "habilidades", "velocidad", "energia2", "general", "general"];
+      cat = opciones[Math.floor(Math.random() * opciones.length)];
+    }
     const lista = MENTOR_CONSEJOS[cat] || MENTOR_CONSEJOS.general;
     setMentorTip(lista[Math.floor(Math.random() * lista.length)]);
     sfx("click");
@@ -1809,7 +1874,23 @@ export default function RatRaceGame() {
       <div style={{ maxWidth: 420, margin: "0 auto" }}>
         <button onClick={() => setScreen("intro")} style={{ background: "none", border: "none", color: C.textSecondary, cursor: "pointer", fontSize: 13, marginBottom: 20, padding: 0 }}>← Volver</button>
         <h2 style={{ color: C.textPrimary, fontSize: 22, fontWeight: 800, marginBottom: 4 }}>Elige tu perfil</h2>
-        <p style={{ color: C.textSecondary, fontSize: 13, marginBottom: 20 }}>Cada uno tiene diferente punto de partida y habilidades iniciales.</p>
+        <p style={{ color: C.textSecondary, fontSize: 13, marginBottom: 14 }}>Cada uno tiene diferente punto de partida y habilidades iniciales.</p>
+
+        {/* Selector de dificultad */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 12, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>🎚️ Dificultad</div>
+          <div style={{ display: "flex", gap: 6 }}>
+            {Object.values(DIFICULTADES).map(d => (
+              <button key={d.id} onClick={() => { setNivelDificultad(d.id); sfx("click"); }} style={{
+                flex: 1, background: nivelDificultad === d.id ? `${d.color}22` : C.surface,
+                border: `1px solid ${nivelDificultad === d.id ? d.color : C.border}`,
+                color: nivelDificultad === d.id ? d.color : C.textSecondary,
+                borderRadius: 12, padding: "9px 4px", fontSize: 12, fontWeight: 700, cursor: "pointer"
+              }}>{d.emoji} {d.label}</button>
+            ))}
+          </div>
+          <p style={{ color: C.textMuted, fontSize: 11, margin: "6px 0 0" }}>{getDificultad(nivelDificultad).desc}</p>
+        </div>
         {PROFILES.map(p => (
           <div key={p.id} onClick={() => startGame(p)} style={{ background: C.card, border: `1px solid ${p.color}33`, borderRadius: 16, padding: 18, marginBottom: 10, cursor: "pointer" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
@@ -1910,7 +1991,7 @@ export default function RatRaceGame() {
               <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                 {top.map((e, i) => (
                   <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, padding: "5px 8px", borderRadius: 8, background: e.id === miEntradaId ? `${C.green}22` : "transparent", border: e.id === miEntradaId ? `1px solid ${C.green}66` : "1px solid transparent" }}>
-                    <span style={{ color: C.textSecondary }}>{i + 1}. {e.emoji} {e.perfil}</span>
+                    <span style={{ color: C.textSecondary }}>{i + 1}. {e.emoji} {e.perfil} {e.nivelEmoji || ""}</span>
                     <span style={{ color: e.id === miEntradaId ? C.green : C.textPrimary, fontWeight: 700 }}>{e.tiempoMeses} meses <span style={{ color: C.textMuted, fontWeight: 400 }}>({e.ciclo} {e.cicloLabel}s)</span></span>
                   </div>
                 ))}
