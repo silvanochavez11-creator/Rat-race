@@ -893,6 +893,43 @@ const DIFICULTADES = {
 const getDificultad = (id) => DIFICULTADES[id] || DIFICULTADES.normal;
 
 // ============================================================
+// CICLO ECONÓMICO: boom / estable / recesión.
+// Mueve los precios de los bienes y las rentas: compra barato, vende caro.
+// ============================================================
+const ECONOMIAS = {
+  boom:     { id: "boom",     label: "Boom",     emoji: "📈", color: "#00E5A0", precioF: 1.20, rentaF: 1.15, plusExtra: 0.006,  desc: "Todo sube: tus bienes valen más, pero comprar es caro." },
+  normal:   { id: "normal",   label: "Estable",  emoji: "⚖️", color: "#7A8BA8", precioF: 1.00, rentaF: 1.00, plusExtra: 0,      desc: "El mercado está tranquilo." },
+  recesion: { id: "recesion", label: "Recesión", emoji: "📉", color: "#FF4D6A", precioF: 0.78, rentaF: 0.90, plusExtra: -0.010, desc: "¡Gangas! Los bienes están baratos, pero las rentas bajan." },
+};
+const getEco = (id) => ECONOMIAS[id] || ECONOMIAS.normal;
+// Transición del ciclo económico (cadena simple): desde estable puede venir
+// boom o recesión; desde los extremos se regresa a estable.
+const siguienteEco = (id, roll) => {
+  if (id === "normal") return roll < 0.10 ? "boom" : roll > 0.90 ? "recesion" : "normal";
+  return roll < 0.30 ? "normal" : id;
+};
+
+// ============================================================
+// MISIONES del mentor: metas intermedias con recompensa.
+// Se muestran 3 activas; al cumplirlas ganas dinero y avanzas.
+// ============================================================
+const MISIONES = [
+  { id: "m_skill",    texto: "Aprende una habilidad nueva",            recompensa: 1000, cond: (s) => s.habilidades.length > s.profile.habilidades.length },
+  { id: "m_pasivo1",  texto: "Genera tu primer ingreso pasivo",        recompensa: 1500, cond: (s) => s.fin.activosPasivos > 0 },
+  { id: "m_renta",    texto: "Renta una propiedad o vehículo",         recompensa: 2000, cond: (s) => s.pertenencias.some(p => p.rentando) },
+  { id: "m_colchon",  texto: "Ahorra 3 meses de gastos en efectivo",   recompensa: 2000, cond: (s) => s.fin.dinero >= gastoMeta(s.fin) * 3 },
+  { id: "m_maestria", texto: "Sube una habilidad a maestría 2.0",      recompensa: 2000, cond: (s) => Object.values(s.dominios).some(d => d >= 2) },
+  { id: "m_nivel3",   texto: "Alcanza nivel 3 de experiencia",         recompensa: 1500, cond: (s) => expNivel(s.experiencia) >= 3 },
+  { id: "m_credito",  texto: "Sube tu historial crediticio a 50",      recompensa: 2500, cond: (s) => s.credito >= 50 },
+  { id: "m_sindeuda", texto: "Queda libre de deudas",                  recompensa: 3000, cond: (s) => totalDeuda(s.fin) === 0, requiere: (s) => s.profile.finances.deudas > 0 },
+  { id: "m_meta25",   texto: "Cubre el 25% de tu meta con pasivo",     recompensa: 2500, cond: (s) => s.fin.activosPasivos >= gastoMeta(s.fin) * 0.25 },
+  { id: "m_meta50",   texto: "Cubre el 50% de tu meta con pasivo",     recompensa: 5000, cond: (s) => s.fin.activosPasivos >= gastoMeta(s.fin) * 0.5 },
+  { id: "m_meta75",   texto: "Cubre el 75% de tu meta con pasivo",     recompensa: 8000, cond: (s) => s.fin.activosPasivos >= gastoMeta(s.fin) * 0.75 },
+];
+// Las misiones aplicables a este perfil (algunas requieren, p. ej., tener deuda inicial)
+const misionesDe = (profile) => MISIONES.filter(m => !m.requiere || m.requiere({ profile }));
+
+// ============================================================
 // TABLERO (la carrera de la rata): casillas en círculo.
 // La casilla donde caes sesga el tipo de evento que aparece.
 // ============================================================
@@ -1292,6 +1329,9 @@ export default function RatRaceGame() {
   const [dado, setDado] = useState(null);          // valor del dado
   const [rolling, setRolling] = useState(false);   // animación de movimiento
   const [tutorialPaso, setTutorialPaso] = useState(null);  // paso actual del tutorial (null = cerrado)
+  const [economia, setEconomia] = useState("normal");      // ciclo económico: boom/normal/recesion
+  const [quiebraCount, setQuiebraCount] = useState(0);     // ciclos seguidos en números rojos
+  const [misionesHechas, setMisionesHechas] = useState([]); // ids de misiones completadas
   const [evento, setEvento] = useState(null);
   const [log, setLog] = useState([]);
   const [mentorTip, setMentorTip] = useState(null);
@@ -1350,6 +1390,49 @@ export default function RatRaceGame() {
     if (n > nivelPrevRef.current) setLevelFlash(f => f + 1);
     nivelPrevRef.current = n;
   }, [experiencia]);
+
+  // 💀 BANCARROTA: si pasas el equivalente a 3 MESES seguidos en números rojos, pierdes.
+  const quiebraCicloRef = useRef(null);
+  useEffect(() => {
+    if (screen !== "game" || !finances || !profile) return;
+    // Solo cuenta avances reales de ciclo (ignora el montaje / cargar partida).
+    if (quiebraCicloRef.current === null || quiebraCicloRef.current === ciclo) { quiebraCicloRef.current = ciclo; return; }
+    quiebraCicloRef.current = ciclo;
+    const limite = Math.ceil(3 / factorDe(profile.ciclo));   // 3 meses en ciclos del perfil
+    if (finances.dinero < 0) {
+      const n = quiebraCount + 1;
+      setQuiebraCount(n);
+      if (n >= limite) {
+        try { localStorage.removeItem(SAVE_KEY); } catch {}
+        playSound("error");
+        setScreen("lose");
+      } else {
+        const restante = limite - n;
+        showNotif(`⚠️ ¡Números rojos! Bancarrota en ${restante} ${getCicloLabel(profile.ciclo).toLowerCase()}${restante === 1 ? "" : "s"}`, C.red);
+      }
+    } else if (quiebraCount > 0) {
+      setQuiebraCount(0);
+      showNotif("✅ Saliste de los números rojos", C.green);
+    }
+  }, [ciclo]);
+
+  // 🎯 MISIONES: las 3 activas se evalúan con cada cambio; al cumplirse pagan recompensa.
+  const misionesActivas = (profile && finances)
+    ? misionesDe(profile).filter(m => !misionesHechas.includes(m.id)).slice(0, 3)
+    : [];
+  useEffect(() => {
+    if (screen !== "game" || !profile || !finances) return;
+    const s = { fin: finances, habilidades, pertenencias, dominios, experiencia, credito, profile };
+    const cumplidas = misionesActivas.filter(m => { try { return m.cond(s); } catch { return false; } });
+    if (!cumplidas.length) return;
+    setMisionesHechas(prev => [...prev, ...cumplidas.map(m => m.id)]);
+    cumplidas.forEach(m => {
+      setFinances(f => ({ ...f, dinero: f.dinero + m.recompensa }));
+      addLog(`🎯 Misión cumplida: "${m.texto}" → +${fmt(m.recompensa)}`, "success");
+      showNotif(`🎯 ¡Misión cumplida! +${fmt(m.recompensa)}`, C.green);
+      sfx("success");
+    });
+  }, [screen, finances, habilidades, pertenencias, dominios, experiencia, credito]);
 
   // Al GANAR: registra tu tiempo en la tabla de líderes (una sola vez).
   useEffect(() => {
@@ -1433,6 +1516,7 @@ export default function RatRaceGame() {
     setExperiencia(0); setPuntosMaestria(0); setCredito(20); setPertenencias([]);
     setActiveRama(p.ramaAfin || (p.ramasPermitidas && p.ramasPermitidas[0]) || "finanzas");
     setBoardPos(0); setDado(null); setRolling(false);
+    setEconomia("normal"); setQuiebraCount(0); setMisionesHechas([]);
     winRecordedRef.current = false; setMiEntradaId(null);
     setScreen("game");
     // Mostrar el tutorial la primera vez que se juega.
@@ -1444,11 +1528,11 @@ export default function RatRaceGame() {
   useEffect(() => {
     if (screen !== "game" || !finances || !profile) return;
     try {
-      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito, nivelDificultad };
+      const data = { profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito, nivelDificultad, economia, quiebraCount, misionesHechas };
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
       setHaySaved(true);
     } catch {}
-  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito, nivelDificultad]);
+  }, [screen, profile, stats, habilidades, finances, energia, ciclo, log, seguimientos, experiencia, pertenencias, dominios, puntosMaestria, credito, nivelDificultad, economia, quiebraCount, misionesHechas]);
 
   // Cargar la partida guardada y continuar.
   const continuarPartida = () => {
@@ -1465,6 +1549,9 @@ export default function RatRaceGame() {
       setPuntosMaestria(data.puntosMaestria ?? (data.experiencia || 0));   // compat: usa la exp previa como puntos iniciales
       setCredito(data.credito ?? 20);
       setNivelDificultad(data.nivelDificultad || "normal");
+      setEconomia(data.economia || "normal");
+      setQuiebraCount(data.quiebraCount || 0);
+      setMisionesHechas(data.misionesHechas || []);
       // Compatibilidad: si una partida vieja no tiene maestrías, las creamos en 1.
       const dom = data.dominios || {}; (data.habilidades || []).forEach(id => { if (!dom[id]) dom[id] = 1; });
       setDominios(dom);
@@ -1505,8 +1592,42 @@ export default function RatRaceGame() {
       return nuevo;
     });
 
-    // Plusvalía: cada mes tus pertenencias cambian de valor (casas suben, vehículos bajan).
-    setPertenencias(prev => prev.map(p => ({ ...p, valorActual: Math.max(0, Math.round(p.valorActual * (1 + p.plusvalia * factorDe(profile.ciclo)))) })));
+    // Ciclo económico: puede cambiar (más probable al pasar más tiempo por ciclo).
+    setEconomia(prev => {
+      const sig = Math.random() < factorDe(profile.ciclo) ? siguienteEco(prev, Math.random()) : prev;
+      if (sig !== prev) {
+        const e = getEco(sig);
+        showNotif(`${e.emoji} La economía cambió: ${e.label}`, e.color);
+        addLog(`${e.emoji} Economía: ${e.label} — ${e.desc}`, sig === "boom" ? "success" : sig === "recesion" ? "danger" : "info");
+      }
+      return sig;
+    });
+
+    // Plusvalía: cada mes tus pertenencias cambian de valor (casas suben, vehículos
+    // bajan) — y la economía empuja: boom revaloriza, recesión devalúa.
+    setPertenencias(prev => prev.map(p => ({ ...p, valorActual: Math.max(0, Math.round(p.valorActual * (1 + (p.plusvalia + getEco(economia).plusExtra) * factorDe(profile.ciclo)))) })));
+
+    // Seguimientos: los clientes pendientes vuelven a los 3 ciclos — se cierran o se pierden.
+    const debidos = seguimientos.filter(s => (ciclo + 1) - s.ciclo >= 3);
+    if (debidos.length) {
+      setSeguimientos(prev => prev.filter(s => (ciclo + 1) - s.ciclo < 3));
+      debidos.forEach(s => {
+        // Tus habilidades de venta mejoran la probabilidad de que el seguimiento cierre.
+        let prob = 0.45;
+        if (habilidades.includes("ventas_basicas")) prob += 0.1;
+        if (habilidades.includes("cierre")) prob += 0.15;
+        if (Math.random() < prob) {
+          const pago = 3000, ing = 1200;
+          setFinances(f => { const nf = { ...f, dinero: f.dinero + pago, ingresoMensual: f.ingresoMensual + ing }; checkWin(nf); return nf; });
+          addLog(`📞 ¡"${s.evento}" te llamó de vuelta! Cerraste: +${fmt(pago)} y +${fmt(ing)}/mes`, "success");
+          showNotif(`📞 ¡Seguimiento cerrado! +${fmt(pago)}`, C.green);
+          sfx("success");
+        } else {
+          addLog(`📞 El seguimiento de "${s.evento}" se enfrió. Se fue con otro.`, "danger");
+          showNotif("Un seguimiento se perdió 😕", C.yellow);
+        }
+      });
+    }
 
     // Experiencia: cada semana trabajada suma (nivel) y da puntos de maestría (independientes).
     setExperiencia(e => Math.min(EXP_POR_NIVEL * 10, e + 1));
@@ -1580,7 +1701,37 @@ export default function RatRaceGame() {
       if (pasos >= d) {
         clearInterval(iv);
         setRolling(false);
-        const bias = (TIPOS_CASILLA[CASILLAS[np]] || {}).bias || [];
+        const tipoCasilla = CASILLAS[np];
+        // Casillas con EFECTO PROPIO: resuelven directo, sin evento (turno rápido).
+        if (tipoCasilla === "paga") {
+          setFinances(fin => {
+            const bono = Math.max(300, Math.round((fin.ingresoMensual + fin.activosPasivos) * 0.15));
+            showNotif(`💰 ¡Caíste en Paga! Bono de ${fmt(bono)}`, C.green);
+            addLog(`💰 Casilla de paga: bono de ${fmt(bono)}`, "success");
+            sfx("coin");
+            const nf = { ...fin, dinero: fin.dinero + bono }; checkWin(nf); return nf;
+          });
+          return;
+        }
+        if (tipoCasilla === "descanso") {
+          setEnergia(eng => ({ ...eng, actual: Math.min(eng.max, eng.actual + 20) }));
+          showNotif("🌴 Día libre: +20 energía gratis", C.blue);
+          addLog("🌴 Casilla libre: recuperaste 20 de energía", "info");
+          sfx("click");
+          return;
+        }
+        if (tipoCasilla === "gasto") {
+          setFinances(fin => {
+            const peaje = Math.max(200, Math.round(fin.gastosMensuales * 0.06));
+            showNotif(`🛍️ Gasto sorpresa: −${fmt(peaje)}`, C.red);
+            addLog(`🛍️ Casilla de gasto: pagaste ${fmt(peaje)}`, "danger");
+            sfx("error");
+            return { ...fin, dinero: fin.dinero - peaje };
+          });
+          return;
+        }
+        // El resto de casillas disparan un evento sesgado por su tipo.
+        const bias = (TIPOS_CASILLA[tipoCasilla] || {}).bias || [];
         setFinances(fin => {
           setEnergia(eng => {
             setEvento(elegirEvento(fin, eng, bias));
@@ -1601,7 +1752,7 @@ export default function RatRaceGame() {
     const ev = evento;
     const bien = MERCADO_BIENES.find(b => b.id === ev.bienId);
     if (!bien) { setEvento(null); return; }
-    const precio = Math.round(bien.costo * (ev.descuento || 1));
+    const precio = Math.round(bien.costo * (ev.descuento || 1) * getEco(economia).precioF);
     if (idx === 1) { addLog(`Rechazaste: ${ev.titulo}`, "info"); sfx("click"); setEvento(null); return; }
     if (idx === 0 && finances.dinero < precio) { showNotif("No te alcanza de contado. Prueba financiar.", C.yellow); return; }
     const imp = ev.impacto[idx];
@@ -1844,7 +1995,9 @@ export default function RatRaceGame() {
     sfx("coin");
     return true;
   };
-  const comprarBien = (bien) => { comprarBienPrecio(bien, bien.costo, false); };
+  // El ciclo económico mueve el precio de compra (boom caro, recesión ganga).
+  const precioMercado = (bien) => Math.round(bien.costo * getEco(economia).precioF);
+  const comprarBien = (bien) => { comprarBienPrecio(bien, precioMercado(bien), false); };
 
   // Al rentar, primero hay que BUSCAR Y NEGOCIAR con un inquilino (modal).
   const rentarBien = (id) => {
@@ -1856,7 +2009,8 @@ export default function RatRaceGame() {
       addLog(`Dejaste de rentar ${p.nombre}`, "info");
       showNotif("Dejaste de rentar", C.blue);
     } else {
-      setInquilino({ id, base: rentaEfectiva(p, habilidades, dominios), nombre: p.nombre, emoji: p.emoji });
+      // La economía mueve la renta que puedes pactar (boom sube, recesión baja).
+      setInquilino({ id, base: Math.round(rentaEfectiva(p, habilidades, dominios) * getEco(economia).rentaF), nombre: p.nombre, emoji: p.emoji });
       sfx("click");
     }
   };
@@ -1887,16 +2041,19 @@ export default function RatRaceGame() {
     }
   };
 
+  // Al vender también pesa la economía: en boom te pagan más, en recesión malbaratas.
+  const precioVenta = (p) => Math.round(p.valorActual * getEco(economia).precioF);
   const venderBien = (id) => {
     const p = pertenencias.find(x => x.id === id);
     if (!p) return;
-    setFinances(f => ({ ...f, dinero: f.dinero + p.valorActual,
+    const venta = precioVenta(p);
+    setFinances(f => ({ ...f, dinero: f.dinero + venta,
       activosPasivos: Math.max(0, f.activosPasivos - (p.rentando ? (p.rentaAplicada || 0) : 0)),
       gastosMensuales: Math.max(0, f.gastosMensuales - (p.mantenimiento || 0)) }));
     setPertenencias(prev => prev.filter(x => x.id !== id));
-    const ganancia = p.valorActual - p.valorCompra;
-    addLog(`Vendiste ${p.nombre} por ${fmt(p.valorActual)} (${ganancia >= 0 ? "+" : ""}${fmt(ganancia)})`, ganancia >= 0 ? "success" : "danger");
-    showNotif(`Vendido por ${fmt(p.valorActual)}`, ganancia >= 0 ? C.green : C.yellow);
+    const ganancia = venta - p.valorCompra;
+    addLog(`Vendiste ${p.nombre} por ${fmt(venta)} (${ganancia >= 0 ? "+" : ""}${fmt(ganancia)})`, ganancia >= 0 ? "success" : "danger");
+    showNotif(`Vendido por ${fmt(venta)}`, ganancia >= 0 ? C.green : C.yellow);
     sfx("pay");
   };
 
@@ -2067,6 +2224,38 @@ export default function RatRaceGame() {
   // ============================================================
   // WIN
   // ============================================================
+  // ============================================================
+  // LOSE (bancarrota)
+  // ============================================================
+  if (screen === "lose") return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      <div style={{ maxWidth: 400, width: "100%", textAlign: "center", animation: "rr-fadein 0.4s ease" }}>
+        <div style={{ fontSize: 64, marginBottom: 16 }}>💀</div>
+        <h1 style={{ color: C.red, fontSize: 26, fontWeight: 900, marginBottom: 6 }}>Bancarrota</h1>
+        <p style={{ color: C.textSecondary, fontSize: 14, marginBottom: 20, lineHeight: 1.7 }}>
+          Pasaste 3 meses en números rojos y la carrera de la rata te alcanzó.
+          Sobreviviste <strong style={{ color: C.textPrimary }}>{ciclo} {getCicloLabel(profile?.ciclo)}s</strong> como <strong style={{ color: C.textPrimary }}>{profile?.name}</strong>.
+        </p>
+        <div style={{ background: C.card, borderRadius: 16, padding: 18, marginBottom: 20, textAlign: "left" }}>
+          <div style={{ fontSize: 11, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>🧑‍🏫 Lección del mentor</div>
+          <p style={{ color: "#C4BBFF", fontSize: 13, lineHeight: 1.7, margin: 0 }}>
+            {totalDeuda(finances || { deudas: [] }) > 0
+              ? "Las deudas caras te comieron: el interés crecía más rápido que tu ingreso. La próxima vez, liquida la deuda de tasa alta ANTES de invertir, y no pidas más de lo que tu flujo puede pagar."
+              : "Tus gastos superaron tus ingresos demasiado tiempo. Recuerda: primero asegura flujo positivo (chambas, recortes) y un colchón de 3 meses; después invierte."}
+          </p>
+        </div>
+        <div style={{ background: C.card, borderRadius: 16, padding: 14, marginBottom: 20, display: "flex", justifyContent: "space-around", fontSize: 12 }}>
+          <div><div style={{ color: C.textMuted }}>Deuda final</div><div style={{ color: C.red, fontWeight: 800 }}>{fmt(totalDeuda(finances || { deudas: [] }))}</div></div>
+          <div><div style={{ color: C.textMuted }}>Ingreso pasivo</div><div style={{ color: C.purple, fontWeight: 800 }}>{fmt(finances?.activosPasivos || 0)}</div></div>
+          <div><div style={{ color: C.textMuted }}>Nivel</div><div style={{ color: C.yellow, fontWeight: 800 }}>{expNivel(experiencia)}/10</div></div>
+        </div>
+        <button onClick={() => setScreen("select")} style={{ background: `linear-gradient(135deg, ${C.purple}, #9333EA)`, color: "white", border: "none", borderRadius: 16, padding: 15, fontSize: 15, fontWeight: 700, cursor: "pointer", width: "100%" }}>
+          Intentar de nuevo
+        </button>
+      </div>
+    </div>
+  );
+
   if (screen === "win") return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Inter', -apple-system, sans-serif", overflowY: "auto" }}>
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
@@ -2193,7 +2382,9 @@ export default function RatRaceGame() {
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 2 }}>{getCicloLabel(profile.ciclo)} {ciclo}</div>
+            <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 2 }}>
+              {getCicloLabel(profile.ciclo)} {ciclo} · <span title={getEco(economia).desc} style={{ color: getEco(economia).color, fontWeight: 700 }}>{getEco(economia).emoji} {getEco(economia).label}</span>
+            </div>
             <div key={cyclePulse} style={{ fontSize: 14, fontWeight: 700, color: flujoMensual >= 0 ? C.green : C.red, display: "inline-block", animation: cyclePulse && flujoMensual >= 0 ? "rr-pop 0.5s ease" : "none" }}>
               {flujoMensual >= 0 ? "+" : ""}{fmt(flujoMensual)}/mes
             </div>
@@ -2245,6 +2436,19 @@ export default function RatRaceGame() {
             {muted ? "🔇" : "🔊"}
           </button>
         </div>
+
+        {/* 🎯 Misiones activas */}
+        {misionesActivas.length > 0 && (
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 14px", marginBottom: 12 }}>
+            <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>🎯 Misiones ({misionesHechas.length}/{misionesDe(profile).length})</div>
+            {misionesActivas.map(m => (
+              <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, padding: "3px 0" }}>
+                <span style={{ color: C.textSecondary }}>▸ {m.texto}</span>
+                <span style={{ color: C.green, fontWeight: 700, whiteSpace: "nowrap", marginLeft: 8 }}>+{fmt(m.recompensa)}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Tabs */}
         <div style={{ display: "flex", background: C.surface, borderRadius: 12, padding: 4, marginBottom: 14, gap: 2 }}>
@@ -2439,7 +2643,7 @@ export default function RatRaceGame() {
                     </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                       <button onClick={() => rentarBien(p.id)} style={btnDeuda(true, p.rentando ? C.surface : `${C.green}22`, p.rentando ? C.textSecondary : C.green)}>{p.rentando ? "Dejar de rentar" : "Rentar"}</button>
-                      <button onClick={() => venderBien(p.id)} style={btnDeuda(true, `${C.yellow}22`, C.yellow)}>Vender {fmt(p.valorActual)}</button>
+                      <button onClick={() => venderBien(p.id)} style={btnDeuda(true, `${C.yellow}22`, C.yellow)}>Vender {fmt(precioVenta(p))}</button>
                     </div>
                   </div>
                 );
@@ -2474,11 +2678,15 @@ export default function RatRaceGame() {
               </div>
             )}
 
-            {/* Mercado de bienes */}
-            <div style={{ fontSize: 11, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>🏪 Mercado</div>
+            {/* Mercado de bienes (precios según la economía) */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1 }}>🏪 Mercado</span>
+              <span style={{ fontSize: 11, color: getEco(economia).color, fontWeight: 700 }}>{getEco(economia).emoji} {getEco(economia).label}{economia === "recesion" ? " · ¡gangas!" : economia === "boom" ? " · caro" : ""}</span>
+            </div>
             {MERCADO_BIENES.map(b => {
-              const puede = finances.dinero >= b.costo;
-              const rentaPot = rentaEfectiva(b, habilidades, dominios);
+              const precio = precioMercado(b);
+              const puede = finances.dinero >= precio;
+              const rentaPot = Math.round(rentaEfectiva(b, habilidades, dominios) * getEco(economia).rentaF);
               const tipoLabel = { vehiculo: "🚗 Vehículo", casa: "🏠 Inmueble", negocio: "🏢 Negocio" }[b.tipo];
               const plus = b.plusvalia >= 0 ? `+${(b.plusvalia * 100).toFixed(1)}%/mes` : `${(b.plusvalia * 100).toFixed(1)}%/mes`;
               return (
@@ -2489,14 +2697,14 @@ export default function RatRaceGame() {
                   </div>
                   <p style={{ color: C.textMuted, fontSize: 11, margin: "0 0 6px" }}>{b.desc}</p>
                   <div style={{ display: "flex", gap: 10, fontSize: 11, marginBottom: 8, flexWrap: "wrap" }}>
-                    <span style={{ color: C.textSecondary }}>💵 {fmt(b.costo)}</span>
+                    <span style={{ color: C.textSecondary }}>💵 {fmt(precio)}{precio !== b.costo && <span style={{ color: C.textMuted, textDecoration: "line-through", marginLeft: 4 }}>{fmt(b.costo)}</span>}</span>
                     <span style={{ color: b.plusvalia >= 0 ? C.green : C.red }}>📈 {plus}</span>
                     <span style={{ color: C.purple }}>🔁 renta {fmt(rentaPot)}/mes</span>
                     <span style={{ color: C.yellow }}>🧰 manten. {fmt(b.mantenimiento)}/mes</span>
                     {b.unidades > 1 && <span style={{ color: C.textSecondary }}>🚪 {b.unidades} unid.</span>}
                   </div>
                   <button disabled={!puede} onClick={() => comprarBien(b)} style={{ width: "100%", background: puede ? C.purple : C.border, color: puede ? "#fff" : C.textMuted, border: "none", borderRadius: 10, padding: "9px", fontSize: 12, fontWeight: 700, cursor: puede ? "pointer" : "not-allowed" }}>
-                    {puede ? `Comprar ${fmt(b.costo)}` : "Sin efectivo suficiente"}
+                    {puede ? `Comprar ${fmt(precio)}` : "Sin efectivo suficiente"}
                   </button>
                 </div>
               );

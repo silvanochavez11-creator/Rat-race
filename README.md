@@ -28,6 +28,18 @@ npm run preview  # sirve la versión de producción para probarla
 - **Tutorial guiado**: la primera vez que juegas, una guía paso a paso te explica
   el objetivo, el tablero, tus números, habilidades, activos, deudas y la
   negociación. Se puede reabrir cuando quieras con el botón ❓.
+- **💀 Bancarrota**: si pasas el equivalente a 3 meses seguidos en números rojos,
+  pierdes la partida (con lección del mentor). ¡La deuda ahora da miedo!
+- **🎯 Misiones del mentor**: siempre tienes 3 metas activas (primer ingreso
+  pasivo, rentar una propiedad, colchón de 3 meses...) con recompensas en dinero.
+- **📈📉 Ciclo económico**: la economía alterna entre boom, estable y recesión.
+  Mueve los precios de compra/venta de los bienes y las rentas: **compra barato
+  en recesión, vende caro en boom**.
+- **🎲 Casillas con efecto propio**: caer en 💰 Paga te da un bono, en 🌴 Libre
+  recuperas energía gratis y en 🛍️ Gasto pagas un peaje. Las demás traen eventos.
+- **📞 Seguimientos que vuelven**: los clientes que quedaron "pensándolo" te
+  llaman a los 3 ciclos — se cierran (dinero + ingreso) o se enfrían, según tus
+  habilidades de venta.
 - **Tablero de la carrera de la rata**: tiras el dado al avanzar y tu ficha 🐀
   recorre el tablero. La casilla donde caes (oportunidad, gasto, mercado,
   cliente, chamba, libre, paga) **sesga el evento** que aparece.
