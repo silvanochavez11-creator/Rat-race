@@ -808,6 +808,11 @@ const ANIMACIONES_CSS = `
 @keyframes rr-shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
 @keyframes rr-flash { 0%,100% { filter: brightness(1); } 50% { filter: brightness(2.2); } }
 @keyframes rr-glow { 0%,100% { box-shadow: 0 0 0 0 rgba(0,229,160,0.0); } 50% { box-shadow: 0 0 12px 2px rgba(0,229,160,0.7); } }
+@keyframes rr-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes rr-cardflip { from { transform: perspective(700px) rotateY(80deg); opacity: 0; } to { transform: perspective(700px) rotateY(0deg); opacity: 1; } }
+@keyframes rr-fall { from { transform: translateY(0) rotate(0deg); opacity: 1; } to { transform: translateY(105vh) rotate(600deg); opacity: 0.85; } }
+@keyframes rr-drive { from { transform: translateX(-70px); } to { transform: translateX(390px); } }
+@keyframes rr-blink { 0%, 90%, 100% { opacity: 1; } 95% { opacity: 0.3; } }
 /* Microinteracción: todos los botones se hunden al presionar */
 button { transition: transform 0.06s ease, filter 0.15s ease; }
 button:active:not(:disabled) { transform: scale(0.95); }
@@ -995,8 +1000,76 @@ function EnergyBar({ actual, max }) {
     </div>
   ); }
 
+// 🏙️ TU CIUDAD: escena SVG donde aparecen los bienes que compras.
+// Casas/edificios en el horizonte (ventanas encendidas si están rentados)
+// y vehículos en la calle (los rentados circulan solos).
+function Ciudad({ pertenencias, economia }) {
+  const eco = getEco(economia);
+  const cielo = economia === "boom" ? "#0D2B1F" : economia === "recesion" ? "#2A1020" : "#0D1830";
+  const edificios = pertenencias.filter(p => p.tipo !== "vehiculo").slice(0, 7);
+  const vehiculos = pertenencias.filter(p => p.tipo === "vehiculo").slice(0, 3);
+  const extra = Math.max(0, pertenencias.length - edificios.length - vehiculos.length);
+  // Forma de cada tipo de construcción: ancho, alto, si lleva techo de dos aguas
+  const SPEC = { casa_chica: { w: 34, h: 26, techo: true }, depa: { w: 30, h: 48 }, duplex: { w: 50, h: 30, techo: true }, edificio: { w: 40, h: 66 }, local: { w: 46, h: 24, toldo: true } };
+  let x = 10;
+  const bloques = edificios.map((p, i) => {
+    const s = SPEC[p.baseId] || { w: 32, h: 34 };
+    const bx = x; x += s.w + 8;
+    return { ...s, x: bx, p, key: p.id };
+  });
+  return (
+    <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${C.border}`, marginBottom: 10, position: "relative" }}>
+      <svg viewBox="0 0 360 96" style={{ display: "block", width: "100%", background: `linear-gradient(180deg, ${cielo}, ${C.bg})` }}>
+        {/* Silueta decorativa de fondo */}
+        {[[0, 46, 26], [40, 60, 30], [95, 40, 22], [150, 55, 34], [210, 38, 26], [265, 58, 30], [320, 44, 28]].map(([sx, sh, sw], i) => (
+          <rect key={i} x={sx} y={84 - sh} width={sw} height={sh} fill="#1A2439" opacity="0.55" />
+        ))}
+        {/* Luna/sol según economía */}
+        <circle cx="330" cy="18" r="8" fill={eco.color} opacity="0.5" />
+        {/* Tus construcciones */}
+        {bloques.map(b => (
+          <g key={b.key} transform={`translate(${b.x}, ${84 - b.h})`}>
+            {b.techo && <path d={`M -3 0 L ${b.w / 2} -10 L ${b.w + 3} 0 Z`} fill="#7C6FFF" />}
+            {b.toldo && <rect x="-2" y="-5" width={b.w + 4} height="6" rx="2" fill="#FF8C42" />}
+            <rect width={b.w} height={b.h} rx="2" fill="#26324D" stroke="#3A4A6E" strokeWidth="1" />
+            {/* Ventanas: encendidas si el bien está rentado */}
+            {Array.from({ length: Math.max(1, Math.floor(b.h / 14)) }).flatMap((_, fila) =>
+              Array.from({ length: Math.max(1, Math.floor(b.w / 14)) }).map((_, col) => (
+                <rect key={`${fila}-${col}`} x={4 + col * 13} y={4 + fila * 13} width="7" height="7" rx="1"
+                  fill={b.p.rentando ? "#FFD166" : "#141E2E"}
+                  style={b.p.rentando ? { animation: `rr-blink ${3 + (fila + col) % 3}s infinite` } : undefined} />
+              )))}
+            <text x={b.w / 2} y={b.h - 3} textAnchor="middle" fontSize="7" fill="#7A8BA8">{b.p.emoji}</text>
+          </g>
+        ))}
+        {/* Calle */}
+        <rect x="0" y="84" width="360" height="12" fill="#151D30" />
+        <line x1="0" y1="90" x2="360" y2="90" stroke="#3A4A6E" strokeWidth="1" strokeDasharray="8 7" />
+        {/* Tus vehículos: los rentados circulan */}
+        {vehiculos.map((v, i) => {
+          const w = v.baseId === "camioneta" ? 30 : v.baseId === "auto" ? 24 : 14;
+          return (
+            <g key={v.id} transform={`translate(${240 - i * 45}, 78)`} style={v.rentando ? { animation: `rr-drive ${7 + i * 3}s linear infinite` } : undefined}>
+              <rect width={w} height="8" rx="3" fill={v.rentando ? "#00E5A0" : "#3A4A6E"} />
+              <rect x={w * 0.25} y="-4" width={w * 0.5} height="5" rx="2" fill={v.rentando ? "#00E5A0" : "#3A4A6E"} opacity="0.8" />
+              <circle cx={w * 0.25} cy="9" r="3" fill="#0A0F1C" stroke="#7A8BA8" strokeWidth="1" />
+              <circle cx={w * 0.78} cy="9" r="3" fill="#0A0F1C" stroke="#7A8BA8" strokeWidth="1" />
+            </g>
+          );
+        })}
+        {/* Ciudad vacía */}
+        {pertenencias.length === 0 && (
+          <text x="180" y="52" textAnchor="middle" fontSize="11" fill="#3D5068">🏗️ Compra bienes y aparecerán en tu ciudad</text>
+        )}
+        {extra > 0 && <text x="350" y="78" textAnchor="end" fontSize="9" fill="#7A8BA8">+{extra} más</text>}
+      </svg>
+      <div style={{ position: "absolute", top: 5, left: 8, fontSize: 8, letterSpacing: 2, color: C.textMuted, textTransform: "uppercase" }}>Tu ciudad</div>
+    </div>
+  );
+}
+
 // Tablero circular "la carrera de la rata"
-function Tablero({ pos, dado, rolling, tired, profileEmoji }) {
+function Tablero({ pos, dado, rolling, tired, profileEmoji, progreso = 0, mood = null }) {
   const cols = 7, filas = 5;
   const coords = posicionesBorde(cols, filas);
   return (
@@ -1020,11 +1093,25 @@ function Tablero({ pos, dado, rolling, tired, profileEmoji }) {
             </div>
           );
         })}
-        {/* Centro: meta + dado */}
-        <div style={{ gridColumn: `2 / ${cols}`, gridRow: `2 / ${filas}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
-          <div style={{ fontSize: 9, color: C.textMuted, letterSpacing: 2 }}>LA CARRERA</div>
-          <div style={{ width: 44, height: 44, background: "#fff", color: "#111", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 900, animation: rolling ? "rr-shake 0.3s ease infinite" : "none", boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>{dado || "🎲"}</div>
-          <div style={{ fontSize: 8, color: C.textMuted }}>{rolling ? "corriendo..." : "🎯 sal de la carrera"}</div>
+        {/* Centro: la rata protagonista con su ANILLO DE LIBERTAD + el dado */}
+        <div style={{ gridColumn: `2 / ${cols}`, gridRow: `2 / ${filas}`, display: "flex", alignItems: "center", justifyContent: "center", gap: 14 }}>
+          <div style={{ position: "relative", width: 88, height: 88 }}>
+            <svg width="88" height="88" viewBox="0 0 88 88" style={{ transform: "rotate(-90deg)" }}>
+              <circle cx="44" cy="44" r="37" stroke={C.border} strokeWidth="7" fill="none" />
+              <circle cx="44" cy="44" r="37" stroke={progreso >= 100 ? C.yellow : C.green} strokeWidth="7" fill="none" strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 37} strokeDashoffset={2 * Math.PI * 37 * (1 - Math.min(100, progreso) / 100)}
+                style={{ transition: "stroke-dashoffset 0.6s ease", filter: progreso > 85 ? `drop-shadow(0 0 6px ${C.green})` : "none" }} />
+            </svg>
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 32, lineHeight: 1, animation: rolling ? "rr-shake 0.3s ease infinite" : "rr-bob 2.4s ease-in-out infinite" }}>{tired ? "😴" : "🐀"}</span>
+              <span style={{ fontSize: 10, color: C.green, fontWeight: 800 }}>{Math.round(progreso)}%</span>
+            </div>
+            {mood && <span style={{ position: "absolute", top: 2, right: 0, fontSize: 15, animation: "rr-bob 1.6s infinite" }}>{mood}</span>}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+            <div style={{ width: 40, height: 40, background: "#fff", color: "#111", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, animation: rolling ? "rr-shake 0.3s ease infinite" : "none", boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>{dado || "🎲"}</div>
+            <div style={{ fontSize: 8, color: C.textMuted }}>{rolling ? "corriendo..." : "libertad"}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1060,9 +1147,15 @@ function EventModal({ evento, onChoice, habilidades, energia }) {
   const tipoLabel = { black_swan: "⚠️ EVENTO CRÍTICO", gasto: "GASTO INESPERADO", chamba: "CHAMBA DISPONIBLE", oportunidad: "OPORTUNIDAD", inversion: "INVERSIÓN", descanso: "TIEMPO LIBRE", inmueble: "🏠 OPORTUNIDAD INMOBILIARIA" }[evento.tipo];
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
-      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 22, padding: 24, maxWidth: 380, width: "100%", animation: "rr-pop 0.25s ease" }}>
-        <div style={{ fontSize: 44, textAlign: "center", marginBottom: 10 }}>{evento.emoji}</div>
-        <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 2, color: tipoColor, marginBottom: 6, textAlign: "center" }}>{tipoLabel}</div>
+      {/* Carta de juego: se "voltea" al aparecer, con marco del color del tipo */}
+      <div style={{ background: C.card, border: `2px solid ${tipoColor}88`, borderRadius: 22, padding: 24, maxWidth: 380, width: "100%", animation: "rr-cardflip 0.4s ease", boxShadow: `0 12px 44px ${tipoColor}33` }}>
+        {/* Ilustración de la carta */}
+        <div style={{ margin: "-24px -24px 14px", padding: "24px 0 14px", background: `linear-gradient(160deg, ${tipoColor}30, ${tipoColor}08)`, borderBottom: `2px solid ${tipoColor}44`, borderRadius: "20px 20px 0 0", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -22, left: -22, width: 90, height: 90, borderRadius: "50%", background: `${tipoColor}18` }} />
+          <div style={{ position: "absolute", bottom: -30, right: -14, width: 110, height: 110, borderRadius: "50%", background: `${tipoColor}12` }} />
+          <div style={{ fontSize: 56, lineHeight: 1.1, filter: `drop-shadow(0 8px 16px ${tipoColor}99)`, animation: "rr-bob 3s ease-in-out infinite", position: "relative" }}>{evento.emoji}</div>
+          <div style={{ display: "inline-block", marginTop: 8, fontSize: 10, textTransform: "uppercase", letterSpacing: 2, color: tipoColor, fontWeight: 800, background: `${tipoColor}22`, border: `1px solid ${tipoColor}55`, borderRadius: 99, padding: "3px 14px", position: "relative" }}>{tipoLabel}</div>
+        </div>
         <h3 style={{ color: C.textPrimary, fontSize: 18, fontWeight: 800, textAlign: "center", marginBottom: 8 }}>{evento.titulo}</h3>
         <p style={{ color: C.textSecondary, fontSize: 13, textAlign: "center", marginBottom: 16, lineHeight: 1.6 }}>{evento.descripcion}</p>
         {!tieneHabilidad && skillRequerida && (
@@ -1370,6 +1463,30 @@ export default function RatRaceGame() {
     setTimeout(() => setFloaters(prev => prev.filter(f => f.id !== id)), 1100);
   };
 
+  // 🎉 Partículas de celebración (confetti, lluvia de monedas)
+  const [particulas, setParticulas] = useState([]);
+  const partId = useRef(0);
+  const burst = (emojis, n = 14) => {
+    const nuevos = Array.from({ length: n }, () => ({
+      id: ++partId.current,
+      e: emojis[Math.floor(Math.random() * emojis.length)],
+      left: Math.random() * 100,
+      dur: 1.1 + Math.random() * 1.3,
+      delay: Math.random() * 0.35,
+      size: 14 + Math.random() * 16,
+    }));
+    setParticulas(prev => [...prev, ...nuevos]);
+    const ids = nuevos.map(x => x.id);
+    setTimeout(() => setParticulas(prev => prev.filter(x => !ids.includes(x.id))), 3000);
+  };
+  const overlayParticulas = particulas.length > 0 ? (
+    <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 500, overflow: "hidden" }}>
+      {particulas.map(p => (
+        <span key={p.id} style={{ position: "absolute", left: `${p.left}%`, top: -34, fontSize: p.size, animation: `rr-fall ${p.dur}s ${p.delay}s ease-in forwards` }}>{p.e}</span>
+      ))}
+    </div>
+  ) : null;
+
   // Detecta cambios de dinero → lanza número flotante (y shake si pierdes).
   useEffect(() => {
     if (!finances) { dineroPrevRef.current = null; return; }
@@ -1379,6 +1496,7 @@ export default function RatRaceGame() {
       if (Math.abs(delta) >= 1) {
         flotante((delta > 0 ? "+" : "−") + fmt(Math.abs(delta)), delta > 0 ? C.green : C.red);
         if (delta < 0) setShakeMoney(s => s + 1);
+        if (delta >= 2000) burst(["🪙", "💵", "🪙"], Math.min(16, 6 + Math.round(delta / 3000)));
       }
     }
     dineroPrevRef.current = finances.dinero;
@@ -1426,6 +1544,7 @@ export default function RatRaceGame() {
     const cumplidas = misionesActivas.filter(m => { try { return m.cond(s); } catch { return false; } });
     if (!cumplidas.length) return;
     setMisionesHechas(prev => [...prev, ...cumplidas.map(m => m.id)]);
+    burst(["🎉", "✨", "🎊"], 16);
     cumplidas.forEach(m => {
       setFinances(f => ({ ...f, dinero: f.dinero + m.recompensa }));
       addLog(`🎯 Misión cumplida: "${m.texto}" → +${fmt(m.recompensa)}`, "success");
@@ -1448,6 +1567,7 @@ export default function RatRaceGame() {
       };
       setTabla(agregarATabla(entry));
       setMiEntradaId(id);
+      burst(["🎉", "🏆", "💰", "🎊", "✨"], 32);
     }
   }, [screen]);
 
@@ -2258,8 +2378,10 @@ export default function RatRaceGame() {
 
   if (screen === "win") return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Inter', -apple-system, sans-serif", overflowY: "auto" }}>
+      <style>{ANIMACIONES_CSS}</style>
+      {overlayParticulas}
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>🏆</div>
+        <div style={{ fontSize: 64, marginBottom: 16, animation: "rr-bob 2s ease-in-out infinite" }}>🏆</div>
         <h1 style={{ color: C.green, fontSize: 26, fontWeight: 900, marginBottom: 6 }}>¡Saliste del Rat Race!</h1>
         <p style={{ color: C.textSecondary, fontSize: 14, marginBottom: 16 }}>
           Lo lograste en <strong style={{ color: C.textPrimary }}>{ciclo} {getCicloLabel(profile?.ciclo)}s</strong> (≈ {profile ? Math.round(ciclo * factorDe(profile.ciclo) * 10) / 10 : ciclo} meses) como <strong style={{ color: C.textPrimary }}>{profile?.name}</strong>
@@ -2360,6 +2482,7 @@ export default function RatRaceGame() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'Inter', -apple-system, sans-serif", maxWidth: 420, margin: "0 auto", paddingBottom: 100 }}>
       <style>{ANIMACIONES_CSS}</style>
+      {overlayParticulas}
 
       {/* Notification */}
       {notification && (
@@ -2421,7 +2544,9 @@ export default function RatRaceGame() {
       </div>
 
       <div style={{ padding: 14 }}>
-        <Tablero pos={boardPos} dado={dado} rolling={rolling} tired={energia.actual < 30} profileEmoji={profile.emoji} />
+        <Ciudad pertenencias={pertenencias} economia={economia} />
+        <Tablero pos={boardPos} dado={dado} rolling={rolling} tired={energia.actual < 30} profileEmoji={profile.emoji} progreso={progreso}
+          mood={finances.dinero < 0 || quiebraCount > 0 ? "😰" : progreso >= 85 ? "🤩" : flujoMensual > 0 ? "😊" : null} />
         {mentorTip && <MentorTip tip={mentorTip} onClose={() => setMentorTip(null)} />}
 
         {/* Controles rápidos: consejo del mentor y sonido */}
@@ -2469,6 +2594,31 @@ export default function RatRaceGame() {
         {/* BALANCE TAB */}
         {activeTab === "balance" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {/* Medidor visual: lo que entra vs lo que sale cada mes */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.card, borderRadius: 12, padding: "12px 14px", border: `1px solid ${C.border}` }}>
+              <div style={{ flex: 1, textAlign: "center", background: `${C.green}15`, border: `1px solid ${C.green}44`, borderRadius: 10, padding: "8px 4px" }}>
+                <div style={{ fontSize: 10, color: C.textMuted }}>📥 ENTRA</div>
+                <div style={{ color: C.green, fontWeight: 800, fontSize: 14 }}>{fmt(finances.ingresoMensual + finances.activosPasivos)}</div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 20, animation: "rr-bob 2.4s infinite" }}>🐀</div>
+                <div style={{ fontSize: 10, fontWeight: 800, color: flujoMensual >= 0 ? C.green : C.red }}>{flujoMensual >= 0 ? "+" : ""}{fmt(flujoMensual)}</div>
+              </div>
+              <div style={{ flex: 1, textAlign: "center", background: `${C.red}12`, border: `1px solid ${C.red}44`, borderRadius: 10, padding: "8px 4px" }}>
+                <div style={{ fontSize: 10, color: C.textMuted }}>📤 SALE</div>
+                <div style={{ color: C.red, fontWeight: 800, fontSize: 14 }}>{fmt(gastoMeta(finances))}</div>
+              </div>
+            </div>
+            {/* Barra comparativa: tu pasivo contra la meta */}
+            <div style={{ background: C.card, borderRadius: 12, padding: "10px 14px", border: `1px solid ${C.border}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: C.textSecondary, marginBottom: 4 }}>
+                <span>🔁 Ingreso pasivo</span><span>🎯 Meta {fmt(gastoMeta(finances))}</span>
+              </div>
+              <div style={{ background: C.border, borderRadius: 99, height: 12, overflow: "hidden", position: "relative" }}>
+                <div style={{ width: `${Math.min(100, progreso)}%`, background: `linear-gradient(90deg, ${C.purple}, ${C.green})`, height: "100%", borderRadius: 99, transition: "width 0.5s" }} />
+                <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8.5, fontWeight: 800, color: "#fff" }}>{fmt(finances.activosPasivos)} · {Math.round(progreso)}%</span>
+              </div>
+            </div>
             {[
               { label: "Ingresos mensuales", value: fmt(finances.ingresoMensual), color: C.green, icon: "📥" },
               { label: "Gastos mensuales", value: fmt(finances.gastosMensuales), color: C.red, icon: "📤" },

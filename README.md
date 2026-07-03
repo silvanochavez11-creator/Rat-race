@@ -40,6 +40,16 @@ npm run preview  # sirve la versión de producción para probarla
 - **📞 Seguimientos que vuelven**: los clientes que quedaron "pensándolo" te
   llaman a los 3 ciclos — se cierran (dinero + ingreso) o se enfrían, según tus
   habilidades de venta.
+- **🏙️ Tu ciudad**: una escena donde aparecen las casas, edificios, locales y
+  vehículos que compras. Los rentados encienden sus ventanas y los vehículos
+  rentados circulan por la calle. ¡Ves crecer tu riqueza!
+- **🐀 Rata protagonista**: vive en el centro del tablero dentro de su **anillo
+  de libertad** (progreso circular), con emociones: se estresa en números rojos
+  😰, sonríe con flujo positivo 😊 y se emociona cerca de la meta 🤩.
+- **🃏 Eventos como cartas**: cada evento aparece como una carta que se voltea,
+  con marco e ilustración del color de su tipo.
+- **🎊 Celebraciones**: confetti al cumplir misiones y ganar, lluvia de monedas
+  cuando entra dinero grande, y medidores visuales (ENTRA → 🐀 → SALE).
 - **Tablero de la carrera de la rata**: tiras el dado al avanzar y tu ficha 🐀
   recorre el tablero. La casilla donde caes (oportunidad, gasto, mercado,
   cliente, chamba, libre, paga) **sesga el evento** que aparece.
