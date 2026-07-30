@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import IdleMode from "./IdleMode.jsx";
 
 // ============================================================
 // DESIGN TOKENS
@@ -2251,15 +2252,33 @@ export default function RatRaceGame() {
   // ============================================================
   // INTRO
   // ============================================================
+  // ============================================================
+  // MODO IDLE (imperio en tiempo real)
+  // ============================================================
+  if (screen === "idle") return <IdleMode onSalir={() => setScreen("intro")} />;
+
   if (screen === "intro") return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "'Inter', -apple-system, sans-serif" }}>
       <div style={{ maxWidth: 400, width: "100%", textAlign: "center" }}>
         <div style={{ width: 80, height: 80, background: `radial-gradient(circle, ${C.purple}33, transparent)`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40, margin: "0 auto 20px", border: `1px solid ${C.purple}44` }}>🐀</div>
         <h1 style={{ color: C.textPrimary, fontSize: 36, fontWeight: 900, letterSpacing: -1.5, margin: "0 0 6px" }}>RAT RACE</h1>
         <p style={{ color: C.purple, fontSize: 11, letterSpacing: 4, textTransform: "uppercase", margin: "0 0 28px" }}>La carrera que no te enseñaron</p>
-        <p style={{ color: C.textSecondary, fontSize: 14, lineHeight: 1.8, margin: "0 0 40px" }}>
+        <p style={{ color: C.textSecondary, fontSize: 14, lineHeight: 1.8, margin: "0 0 24px" }}>
           Toma decisiones financieras reales. Aprende habilidades. Construye activos. Cuida tu energía. Sal del rat race.
         </p>
+
+        {/* 🎮 Modo IDLE: imperio en tiempo real */}
+        <button onClick={() => setScreen("idle")} style={{ background: `linear-gradient(135deg, #FF8C42, #FF4D6A)`, color: "#fff", border: "none", borderRadius: 16, padding: "14px", fontSize: 15, fontWeight: 800, cursor: "pointer", width: "100%", marginBottom: 10, boxShadow: "0 8px 24px rgba(255,140,66,.25)" }}>
+          🏗️ MODO IMPERIO <span style={{ fontSize: 11, fontWeight: 600, opacity: .9 }}>· idle en tiempo real</span>
+        </button>
+        <p style={{ color: C.textMuted, fontSize: 10, margin: "0 0 20px" }}>Tus negocios producen solos, contrata managers y crece sin parar</p>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 14px" }}>
+          <div style={{ flex: 1, height: 1, background: C.border }} />
+          <span style={{ fontSize: 10, color: C.textMuted, letterSpacing: 1 }}>O JUEGA EL CLÁSICO</span>
+          <div style={{ flex: 1, height: 1, background: C.border }} />
+        </div>
+
         {haySaved && (
           <button onClick={continuarPartida} style={{ background: `linear-gradient(135deg, ${C.green}, #00A878)`, color: "#03281b", border: "none", borderRadius: 16, padding: "15px 48px", fontSize: 15, fontWeight: 800, cursor: "pointer", width: "100%", marginBottom: 10 }}>
             ▶️ Continuar partida

@@ -23,7 +23,26 @@ npm run build    # genera la versión optimizada en la carpeta dist/
 npm run preview  # sirve la versión de producción para probarla
 ```
 
-## 🎮 Mecánicas del juego
+## 🏗️ Modo Imperio (idle en tiempo real)
+
+Además del juego clásico por turnos, hay un **modo idle tycoon** (estilo
+*AdVenture Capitalist / Pizza Ready*) al que entras desde la pantalla inicial:
+
+- **Negocios que producen solos**: empiezas con un puesto de tacos y llegas a
+  torres corporativas. Tocas para trabajar; cada ciclo suelta dinero 💵.
+- **Managers 🤖**: contrátalos para que el negocio produzca **sin ti**. Solo lo
+  automatizado cuenta como ingreso pasivo — esa es la clave para ser libre.
+- **Mejoras y zonas**: multiplicadores permanentes (×2, ×3, ciclos más rápidos)
+  y expansión a nuevas zonas del mapa (Zona Centro, Distrito Élite).
+- **Etapas de vida** 🍜🏠🚗🛥️🏝️: al crecer subes de nivel de vida... y tu tren de
+  vida cuesta mucho más. Es la lección de la **inflación del estilo de vida**:
+  solo eres libre cuando tu ingreso pasivo cubre la última etapa.
+- **Ganancias mientras no juegas**: tus managers producen aunque cierres el juego
+  (hasta 8 horas).
+- **Escena isométrica**: tu parcela con los negocios que crecen visualmente
+  según su nivel.
+
+## 🎮 Mecánicas del juego (modo clásico)
 
 - **Tutorial guiado**: la primera vez que juegas, una guía paso a paso te explica
   el objetivo, el tablero, tus números, habilidades, activos, deudas y la
